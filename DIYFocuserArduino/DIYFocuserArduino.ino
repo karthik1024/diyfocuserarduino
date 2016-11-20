@@ -8,11 +8,13 @@
 #include <OneWire.h>                // needed for DS18B20 temperature probe
 #include <DallasTemperature.h>      // needed for DS18B20 temperature probe
 
-#define BAUDRATE 57600 // Serial communication speed.
-#define TEMP_PRECISION 12      // Set the DS18B20 precision to 0.25 of a degree 9=0.5, 10=0.25, 11=0.125, 12=0.0625
-#define TEMP_REFRESH 1000
-#define TEMP_PIN 2              // temperature probe on pin 2, use 4.7k pullup
-#define MAXINPUTSIZE 32 // Maximum length of input command + arguments. 
+#define SERIALCOMM_BAUDRATE 57600 // Serial communication speed.
+#define SERIALCOMM_MAXINPUTSIZE 32 // Maximum length of input command + arguments. 
+
+#define TEMPSENSOR_PRECISION 12      // Set the DS18B20 precision to 0.25 of a degree 9=0.5, 10=0.25, 11=0.125, 12=0.0625
+#define TEMPSENSOR_REFRESH_INTERVAL 1000 // In milli seconds.
+#define TEMPSENSOR_PIN 2              // temperature probe on pin 2, use 4.7k pullup
+
 
 class TemperatureSensor
 {
@@ -55,7 +57,7 @@ public:
 class SerialComm {
 
 private:
-	char commstring[MAXINPUTSIZE + 1];
+	char commstring[SERIALCOMM_MAXINPUTSIZE + 1];
 	bool command_received = false;
 	short commstring_pos = 0;
 	char cmd_termination_char = '#';
@@ -69,7 +71,7 @@ public:
 	void getCommand(char *dest);
 };
 
-TemperatureSensor tempsensor(TEMP_PRECISION, TEMP_REFRESH);
+TemperatureSensor tempsensor(TEMPSENSOR_PRECISION, TEMPSENSOR_REFRESH_INTERVAL);
 CommandProcessor cmdprocessor;
 SerialComm serialcomm;
 
@@ -80,7 +82,7 @@ int stepsize = 1; // Step size
 // the setup function runs once when you press reset or power the board
 void setup() {
 	// Communication
-	Serial.begin(BAUDRATE);
+	Serial.begin(SERIALCOMM_BAUDRATE);
 	Serial.flush();
 	tempsensor.begin();
 }
@@ -90,7 +92,7 @@ void loop() {
 
 	// If a command has been received, nothing will get done until it has been processed.
 	if (serialcomm.commandReceived()) {
-		char command_string[MAXINPUTSIZE + 1];
+		char command_string[SERIALCOMM_MAXINPUTSIZE + 1];
 		serialcomm.getCommand(command_string);
 
 		cmdprocessor.processCommand(command_string);

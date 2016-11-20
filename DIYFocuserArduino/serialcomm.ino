@@ -1,4 +1,4 @@
-#ifndef MAXINPUTSIZE
+#ifndef SERIALCOMM_MAXINPUTSIZE
 #define MAXINPUTSIZE 32 // Maximum length of input command + arguments. 
 #endif // !MAXINPUTSIZE
 
@@ -20,7 +20,7 @@ void SerialComm::serialEvent() {
 
 	// Read the serial port for commands only if current command has been processed
 	if (!command_received) {
-		while ((Serial.available() > 0) && commstring_pos <= MAXINPUTSIZE) {
+		while ((Serial.available() > 0) && commstring_pos <= SERIALCOMM_MAXINPUTSIZE) {
 			input = Serial.read();
 			if (input == cmd_termination_char) { // End of command. Exit.
 				commstring[commstring_pos] = '\0'; // Null terminate input communication string.
@@ -31,7 +31,7 @@ void SerialComm::serialEvent() {
 			commstring_pos++;
 		}
 
-		if (commstring_pos > MAXINPUTSIZE) {
+		if (commstring_pos > SERIALCOMM_MAXINPUTSIZE) {
 			// Command length exceeded while waiting for a command to come through.
 			// Reset and restart the process.
 			reset();
