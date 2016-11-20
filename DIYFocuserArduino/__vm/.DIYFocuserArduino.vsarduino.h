@@ -52,5 +52,6 @@ extern "C" void __cxa_pure_virtual() {;}
 #define PSTR(string_literal) ((const PROGMEM char *)(string_literal))")
 #include "DIYFocuserArduino.ino"
 #include "commands.ino"
+#include "serialcomm.ino"
 #include "temperature.ino"
 #endif

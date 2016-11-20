@@ -8,13 +8,13 @@
 OneWire _onewire(TEMP_PIN);
 DallasTemperature _sensor(&_onewire);
 
-Temperature::Temperature(int _bitPrecision, long _refresh_interval)
+TemperatureSensor::TemperatureSensor(int _bitPrecision, long _refresh_interval)
 {
 	refresh_interval = _refresh_interval;
 	bitPrecision = _bitPrecision;
 }
 
-double Temperature::getTemp(bool force)
+double TemperatureSensor::getTemp(bool force)
 {
 	if ((getTimeSinceLastTempCheck() > refresh_interval) || force) {
 		_sensor.requestTemperatures();
@@ -28,21 +28,21 @@ double Temperature::getTemp(bool force)
 	return current_temp;
 }
 
-void Temperature::setRefreshInterval(long interval) {
+void TemperatureSensor::setRefreshInterval(long interval) {
 	refresh_interval = interval;
 }
 
-bool Temperature::isConnected() {
+bool TemperatureSensor::isConnected() {
 	return _isConnected;
 }
 
 
-long Temperature::getTimeSinceLastTempCheck() {
+long TemperatureSensor::getTimeSinceLastTempCheck() {
 
 	return (millis() - time_of_temp_reading);
 }
 
-void Temperature::begin()
+void TemperatureSensor::begin()
 {
 	_sensor.begin();
 	_sensor.getDeviceCount();
