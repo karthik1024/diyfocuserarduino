@@ -26,5 +26,6 @@
     <None Include="DIYFocuserArduino.ino" />
     <None Include="temperature.ino" />
     <None Include="commands.ino" />
+    <None Include="serialcomm.ino" />
   </ItemGroup>
 </Project>

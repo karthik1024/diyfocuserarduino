@@ -85,6 +85,7 @@
     <None Include="DIYFocuserArduino.ino">
       <FileType>CppCode</FileType>
     </None>
+    <None Include="serialcomm.ino" />
     <None Include="temperature.ino" />
   </ItemGroup>
   <ItemGroup>
