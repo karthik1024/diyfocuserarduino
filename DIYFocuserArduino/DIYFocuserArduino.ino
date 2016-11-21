@@ -97,7 +97,6 @@ struct DeviceState
 
 class DisplayManager {
 private:
-	LiquidCrystal_I2C *p_lcd;
 	long refresh_interval;
 	long time_of_display_update = 0;
 public:
@@ -133,7 +132,7 @@ void loop() {
 	devicestate.temperature = tempsensor.getTemp();
 
 	// Update the LCD display based on the measured device state.
-	// displaymanager.updateDisplay(&devicestate);
+	displaymanager.updateDisplay(&devicestate);
 
 	// If a command has been received, nothing will get done until it has been processed.
 	if (serialcomm.commandReceived()) {

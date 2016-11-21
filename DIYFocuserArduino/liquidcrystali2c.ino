@@ -15,40 +15,37 @@
 
 #endif // !LIQUIDCRYSTAL_I2C_PARAMS
 
+LiquidCrystal_I2C _lcd(
+	LIQUIDCRYSTAL_IC2_ADDRESS,
+	LIQUIDCRYSTAL_IC2_EN_PIN,
+	LIQUIDCRYSTAL_IC2_RW_PIN,
+	LIQUIDCRYSTAL_IC2_RS_PIN,
+	LIQUIDCRYSTAL_IC2_D4_PIN,
+	LIQUIDCRYSTAL_IC2_D5_PIN,
+	LIQUIDCRYSTAL_IC2_D6_PIN,
+	LIQUIDCRYSTAL_IC2_D7_PIN,
+	LIQUIDCRYSTAL_IC2_BACKLIGHT_PIN,
+	LIQUIDCRYSTAL_IC2_BACKLIGHT_POLARITY
+);
 
 DisplayManager::DisplayManager(long _refresh_interval) {
-	LiquidCrystal_I2C _lcd(
-		LIQUIDCRYSTAL_IC2_ADDRESS,
-		LIQUIDCRYSTAL_IC2_EN_PIN,
-		LIQUIDCRYSTAL_IC2_RW_PIN,
-		LIQUIDCRYSTAL_IC2_RS_PIN,
-		LIQUIDCRYSTAL_IC2_D4_PIN,
-		LIQUIDCRYSTAL_IC2_D5_PIN,
-		LIQUIDCRYSTAL_IC2_D6_PIN,
-		LIQUIDCRYSTAL_IC2_D7_PIN,
-		LIQUIDCRYSTAL_IC2_BACKLIGHT_PIN,
-		LIQUIDCRYSTAL_IC2_BACKLIGHT_POLARITY
-	);
-
-	p_lcd = &_lcd;
 	refresh_interval = _refresh_interval;
 }
 
 void DisplayManager::begin() {
-	p_lcd->begin(16, 2);
-	p_lcd->backlight();
-	p_lcd->home();
-	p_lcd->print("Hello World!");
+	_lcd.begin(16, 2);
+	_lcd.setCursor(0, 0);
+	_lcd.print("Hello World!");
 	delay(1000);
 }
 
 void DisplayManager::updateDisplay(DeviceState *ds) {
 	if (getTimeSinceLastDisplayUpdate() > refresh_interval) {
 
-		p_lcd->clear();
-		p_lcd->print("T=");
-		p_lcd->print(ds->temperature);
-
+		_lcd.clear();
+		_lcd.print("T=");
+		_lcd.print(ds->temperature);
+		_lcd.print("C");
 		time_of_display_update = millis(); // Update time when temperature was measured. 
 	}
 }

@@ -27,5 +27,6 @@
     <None Include="temperature.ino" />
     <None Include="commands.ino" />
     <None Include="serialcomm.ino" />
+    <None Include="liquidcrystali2c.ino" />
   </ItemGroup>
 </Project>
