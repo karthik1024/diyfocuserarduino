@@ -1,8 +1,11 @@
 CommandProcessor::CommandProcessor() {}
 
-void CommandProcessor::processCommand(char *command_string) {
+char * CommandProcessor::processCommand(const char *command_string) {
+	char command[SERIALCOMM_MAXINPUTSIZE + 1];
+	strcpy(command, command_string);
+
 	char *arg, *cmd;
-	cmd = arg = command_string;
+	cmd = arg = command;
 	cmd = strsep(&arg, " ");
 
 	if (strcmp("POSITON", cmd) == 0) cmdPosition();
@@ -14,6 +17,8 @@ void CommandProcessor::processCommand(char *command_string) {
 	else if (strcmp("TEMPERATURE", cmd) == 0) cmdTemperature();
 	else if (strcmp("HASTEMPPROBE", cmd) == 0) cmdHasTempProbe();
 	else if (strcmp("RESET", cmd) == 0) cmdReset();
+
+	return cmd;
 }
 
 // Get current position.

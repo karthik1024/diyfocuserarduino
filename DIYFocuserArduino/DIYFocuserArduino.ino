@@ -61,7 +61,7 @@ class CommandProcessor
 public:
 	CommandProcessor();
 
-	void processCommand(char *command_string);
+	char * processCommand(const char *command_string);
 	void cmdPosition();
 	void cmdHome();
 	void cmdMove(char * arg);
@@ -93,6 +93,7 @@ public:
 struct DeviceState
 {
 	double temperature;
+	char command[SERIALCOMM_MAXINPUTSIZE + 1];
 };
 
 class DisplayManager {
@@ -128,20 +129,23 @@ void setup() {
 
 // the loop function runs over and over again until power down or reset
 void loop() {
+	char command_string[SERIALCOMM_MAXINPUTSIZE + 1];
+
+	// If a command has been received, nothing will get done until it has been processed.
+	if (serialcomm.commandReceived()) {
+		serialcomm.getCommand(command_string);
+
+		char * cmd = cmdprocessor.processCommand(command_string);
+		strcpy(devicestate.command, cmd);
+
+		serialcomm.reset();
+	}
+
 	// Get the state of the device from various sensors.
 	devicestate.temperature = tempsensor.getTemp();
 
 	// Update the LCD display based on the measured device state.
 	displaymanager.updateDisplay(&devicestate);
-
-	// If a command has been received, nothing will get done until it has been processed.
-	if (serialcomm.commandReceived()) {
-		char command_string[SERIALCOMM_MAXINPUTSIZE + 1];
-		serialcomm.getCommand(command_string);
-
-		cmdprocessor.processCommand(command_string);
-		serialcomm.reset();
-	}
 }
 
 void serialEvent() {
