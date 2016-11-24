@@ -53,6 +53,8 @@ extern "C" void __cxa_pure_virtual() {;}
 #include "DIYFocuserArduino.ino"
 #include "commands.ino"
 #include "liquidcrystali2c.ino"
+#include "motorcontrol.ino"
+#include "pbswitches.ino"
 #include "serialcomm.ino"
 #include "temperature.ino"
 #endif

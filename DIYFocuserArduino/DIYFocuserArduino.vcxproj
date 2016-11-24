@@ -86,6 +86,8 @@
       <FileType>CppCode</FileType>
     </None>
     <None Include="liquidcrystali2c.ino" />
+    <None Include="motorcontrol.ino" />
+    <None Include="pbswitches.ino" />
     <None Include="serialcomm.ino" />
     <None Include="temperature.ino" />
   </ItemGroup>

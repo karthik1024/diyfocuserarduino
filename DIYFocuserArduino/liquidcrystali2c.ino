@@ -42,11 +42,17 @@ void DisplayManager::begin() {
 void DisplayManager::updateDisplay(DeviceState *ds) {
 	if (getTimeSinceLastDisplayUpdate() > refresh_interval) {
 
+		// Temperature
 		_lcd.clear();
 		_lcd.print("T=");
 		_lcd.print(ds->temperature);
 		_lcd.print("C");
 
+		// PB
+		_lcd.print(" PB=");
+		_lcd.print(ds->pbstate);
+
+		// Command
 		_lcd.setCursor(0, 1);
 		_lcd.print(ds->command);
 		time_of_display_update = millis(); // Update time when temperature was measured. 

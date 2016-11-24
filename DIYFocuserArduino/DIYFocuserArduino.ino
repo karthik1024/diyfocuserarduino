@@ -16,6 +16,9 @@
 #define TEMPSENSOR_REFRESH_INTERVAL 1000 // In milli seconds.
 #define TEMPSENSOR_PIN 2              // temperature probe on pin 2, use 4.7k pullup
 
+#define PBswitchesPin  A0   // push button switches wired to A0 via resistor divider network
+#define Buzzer A3 // Buzzer
+
 #ifndef LIQUIDCRYSTAL_I2C_PARAMS
 
 #define LIQUIDCRYSTAL_IC2_ADDRESS 0x3f // Address of the I2C Liquid Crystal Display module
@@ -28,12 +31,12 @@
 #define LIQUIDCRYSTAL_IC2_D7_PIN 7
 #define LIQUIDCRYSTAL_IC2_BACKLIGHT_PIN 3
 #define LIQUIDCRYSTAL_IC2_BACKLIGHT_POLARITY POSITIVE
-#define LIQUIDCRYSTAL_IC2_REFRESH_INTERVAL 1000
+#define LIQUIDCRYSTAL_IC2_REFRESH_INTERVAL 100
 #define LIQUIDCRYSTAL_I2C_PARAMS
 
 #endif // !LIQUIDCRYSTAL_I2C_PARAMS
 
-
+typedef enum SwitchState { NONE = 0, RED = 1, GREEN = 2, BOTH = 3 } SwitchState;
 
 class TemperatureSensor
 {
@@ -94,6 +97,7 @@ struct DeviceState
 {
 	double temperature;
 	char command[SERIALCOMM_MAXINPUTSIZE + 1];
+	SwitchState pbstate;
 };
 
 class DisplayManager {
@@ -108,11 +112,24 @@ public:
 	long getTimeSinceLastDisplayUpdate();
 };
 
+class PBState {
+private:
+	SwitchState state;
+	short switchpin;
+	long toggle_timestamp = 0;
+	int min_time_before_change_state = 100; 
+public:
+	PBState(short SwitchPin);
+	PBState(short SwitchPin, long MinTimeBeforeStateChange);
+	SwitchState GetState();
+};
+
 TemperatureSensor tempsensor(TEMPSENSOR_PRECISION, TEMPSENSOR_REFRESH_INTERVAL);
 CommandProcessor cmdprocessor;
 SerialComm serialcomm;
 DeviceState devicestate;
 DisplayManager displaymanager(LIQUIDCRYSTAL_IC2_REFRESH_INTERVAL);
+PBState pbstate(PBswitchesPin);
 
 int currentposition = 0; // Absolute position of focuser
 int maxstep = 1000; // Maximum steps allowed by focuser
@@ -125,6 +142,10 @@ void setup() {
 	Serial.flush();
 	tempsensor.begin();
 	displaymanager.begin();
+
+	// analogWrite(Buzzer, 1023);
+	//delay(1000);
+	//analogWrite(Buzzer, 0);
 }
 
 // the loop function runs over and over again until power down or reset
@@ -144,8 +165,12 @@ void loop() {
 	// Get the state of the device from various sensors.
 	devicestate.temperature = tempsensor.getTemp();
 
+	// Read push button
+	devicestate.pbstate = pbstate.GetState();
+
 	// Update the LCD display based on the measured device state.
 	displaymanager.updateDisplay(&devicestate);
+
 }
 
 void serialEvent() {
