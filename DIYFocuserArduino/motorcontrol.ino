@@ -98,6 +98,8 @@ void MotorControl::step(StepperDirection direction, int nSteps) {
 		delayMicroseconds((int)STEPPER_ON_TIME);
 		digitalWrite(STEPPER_STEP_PIN, LOW);
 
+		mSteps = actualDirection == CLOCKWISE ? mSteps + 1 : mSteps - 1;
+
 		switch (mMicroStep) {
 		case 1:
 			delayMicroseconds(mSpeed);
@@ -113,6 +115,10 @@ void MotorControl::step(StepperDirection direction, int nSteps) {
 		analogWrite(STEPPER_STEPINDICATOR_LED_PIN, 0); 
 	}
 } 
+
+long MotorControl::getStep() {
+	return mSteps;
+}
 
 void MotorControl::setReversed(bool truefalse) {
 	mIsReversed = truefalse;

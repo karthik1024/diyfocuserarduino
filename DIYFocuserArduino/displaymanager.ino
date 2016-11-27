@@ -76,7 +76,7 @@ void DisplayManager::updateDisplay(DeviceState *pDS) {
 
 		// Command
 		_lcd.setCursor(0, 1);
-		_lcd.print(pDS->mCommand);
+		_lcd.print(pDS->mSteps);
 		mTimeOfDisplayUpdate = millis(); // Update time when temperature was measured. 
 	}
 }

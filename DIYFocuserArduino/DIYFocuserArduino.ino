@@ -38,7 +38,7 @@
 #define LIQUIDCRYSTAL_D7_PIN 7
 #define LIQUIDCRYSTAL_BACKLIGHT_PIN 3
 #define LIQUIDCRYSTAL_BACKLIGHT_POLARITY POSITIVE
-#define LIQUIDCRYSTAL_REFRESH_INTERVAL 100
+#define LIQUIDCRYSTAL_REFRESH_INTERVAL 500
 #define LIQUIDCRYSTAL_PARAMS
 
 #endif // !LIQUIDCRYSTAL_PARAMS
@@ -133,6 +133,7 @@ struct DeviceState
 	bool mIsJogging;
 	StepperSpeed mSpeed;
 	short mMicroStep;
+	long mSteps;
 };
 
 class DisplayManager {
@@ -166,6 +167,7 @@ private:
 	bool mIsEnabled = false;
 	StepperSpeed mSpeed = MEDSPEED;
 	bool mIsReversed = false;
+	long mSteps;
 public:
 	MotorControl();
 	void initalize();
@@ -174,6 +176,7 @@ public:
 	void setEnable(bool enable);
 	bool isEnabled();
 	void step(StepperDirection direction, int nSteps=1);
+	long getStep();
 	void setReversed(bool truefalse);
 	bool isReversed();
 	void setDirection(StepperDirection direction);
@@ -222,9 +225,10 @@ void loop() {
 		deviceState.mTemperature = tempSensor.getTemp();
 		deviceState.mSpeed = motorControl.getSpeed();
 		deviceState.mMicroStep = motorControl.getMicroStep();
+		deviceState.mSteps = motorControl.getStep();
 		deviceState.mPushButtonState = pbState.getState();
 		deviceState.mIsJogging = pbState.isJogging();
-
+		
 		if (deviceState.mPushButtonState == PBCLOCKWISE) {
 			motorControl.step(CLOCKWISE);
 		}
