@@ -12,8 +12,8 @@
 #define SERIALCOMM_BAUDRATE 57600 // Serial communication speed.
 #define SERIALCOMM_MAXINPUTSIZE 32 // Maximum length of input command + arguments. 
 
-#define TEMPSENSOR_PRECISION 12      // Set the DS18B20 precision to 0.25 of a degree 9=0.5, 10=0.25, 11=0.125, 12=0.0625
-#define TEMPSENSOR_REFRESH_INTERVAL 1000 // In milli seconds.
+#define TEMPSENSOR_PRECISION 10      // Set the DS18B20 precision to 0.25 of a degree 9=0.5, 10=0.25, 11=0.125, 12=0.0625
+#define TEMPSENSOR_REFRESH_INTERVAL 5000 // In milli seconds.
 #define TEMPSENSOR_PIN 2              // temperature probe on pin 2, use 4.7k pullup
 
 #define PBswitchesPin  A0   // push button switches wired to A0 via resistor divider network
@@ -36,7 +36,24 @@
 
 #endif // !LIQUIDCRYSTAL_I2C_PARAMS
 
+// Stepper Motor stuff, control pins for DRV8825 board, REV 203 ONLY
+#ifndef STEPPER_MOTOR_PARAMS
+
+#define STEPPER_STEPINDICATOR_LED_PIN A1
+#define STEPPER_DIRECTION_PIN 3
+#define STEPPER_STEP_PIN 4
+#define STEPPER_MICROSTEP_PIN2 5  // microstepping lines
+#define STEPPER_MICROSTEP_PIN1 6  // microstepping lines
+#define STEPPER_MICROSTEP_PIN0 7  // microstepping lines
+#define STEPPER_ENABLEPIN  8
+
+#define STEPPER_ON_TIME 5 // stepontime - time in microseconds that coil power is ON for one step, board requires 2us pulse
+#define STEPPER_DEFAULT_MICROSTEP 1 // Valid values are 1, 2, 4, 8, 16, 32.
+#endif // !STEPPER_MOTOR_PARAMS
+
 typedef enum SwitchState { NONE = 0, RED = 1, GREEN = 2, BOTH = 3 } SwitchState;
+typedef enum StepperDirection { CLOCKWISE = 0, ANTICLOCKWISE = 1} StepperDirection;
+typedef enum StepperSpeed {LOWSPEED = 4000, MEDSPEED = 2400, HIGHSPEED = 1800} StepperSpeed;
 
 class TemperatureSensor
 {
@@ -124,12 +141,33 @@ public:
 	SwitchState GetState();
 };
 
+class MotorControl {
+private:
+	short microstep = STEPPER_DEFAULT_MICROSTEP;
+	bool isenabled = false;
+	StepperSpeed speed = MEDSPEED;
+	bool isreversed = false;
+public:
+	MotorControl();
+	void Initalize();
+	void SetMicroStep(short MicroStep);
+	void SetEnable(bool _enable);
+	bool IsEnabled();
+	void Step(StepperDirection direction, int nSteps=1);
+	void SetReversed(bool truefalse);
+	bool IsReversed();
+	void SetDirection(StepperDirection direction);
+	void SetSpeed(StepperSpeed _speed);
+	StepperSpeed GetSpeed();
+};
+
 TemperatureSensor tempsensor(TEMPSENSOR_PRECISION, TEMPSENSOR_REFRESH_INTERVAL);
 CommandProcessor cmdprocessor;
 SerialComm serialcomm;
 DeviceState devicestate;
 DisplayManager displaymanager(LIQUIDCRYSTAL_IC2_REFRESH_INTERVAL);
 PBState pbstate(PBswitchesPin);
+MotorControl motorcontrol;
 
 int currentposition = 0; // Absolute position of focuser
 int maxstep = 1000; // Maximum steps allowed by focuser
@@ -142,10 +180,10 @@ void setup() {
 	Serial.flush();
 	tempsensor.begin();
 	displaymanager.begin();
-
-	// analogWrite(Buzzer, 1023);
-	//delay(1000);
-	//analogWrite(Buzzer, 0);
+	motorcontrol.Initalize();
+	analogWrite(Buzzer, 1023);
+	delay(100);
+	analogWrite(Buzzer, 0);
 }
 
 // the loop function runs over and over again until power down or reset
@@ -168,9 +206,16 @@ void loop() {
 	// Read push button
 	devicestate.pbstate = pbstate.GetState();
 
+	if (devicestate.pbstate == 1) {
+		motorcontrol.Step(CLOCKWISE);
+	} 
+	else if (devicestate.pbstate == 2) {
+		motorcontrol.Step(ANTICLOCKWISE);
+	}
+
 	// Update the LCD display based on the measured device state.
 	displaymanager.updateDisplay(&devicestate);
-
+	
 }
 
 void serialEvent() {

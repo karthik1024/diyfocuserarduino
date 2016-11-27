@@ -49,7 +49,7 @@ extern "C" void __cxa_pure_virtual() {;}
 #undef F
 #define F(string_literal) ((const PROGMEM char *)(string_literal))
 #undef PSTR
-#define PSTR(string_literal) ((const PROGMEM char *)(string_literal))")
+#define PSTR(string_literal) ((const PROGMEM char *)(string_literal))
 #include "DIYFocuserArduino.ino"
 #include "commands.ino"
 #include "liquidcrystali2c.ino"
