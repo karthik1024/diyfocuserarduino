@@ -1,7 +1,3 @@
-#ifndef SERIALCOMM_MAXINPUTSIZE
-#define MAXINPUTSIZE 32 // Maximum length of input command + arguments. 
-#endif // !MAXINPUTSIZE
-
 SerialComm::SerialComm() { 
 	reset();
 }

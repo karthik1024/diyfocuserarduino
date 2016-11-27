@@ -1,15 +1,3 @@
-#ifndef STEPPER_MOTOR_PARAMS
-#define STEPPER_STEPINDICATOR_LED_PIN A1
-#define STEPPER_DIRECTION_PIN 3
-#define STEPPER_STEP_PIN 4
-#define STEPPER_MICROSTEP_PIN2 5  // microstepping lines
-#define STEPPER_MICROSTEP_PIN1 6  // microstepping lines
-#define STEPPER_MICROSTEP_PIN0 7  // microstepping lines
-#define STEPPER_ENABLEPIN  8
-#define STEPPER_ON_TIME 5 // stepontime - time in microseconds that coil power is ON for one step, board requires 2us pulse
-// m0/m1/m2 sets stepping mode 000 = F, 100 = 1/2, 010 = 1/4, 110 = 1/8, 001 = 1/16, 101 = 1/32
-#endif // !STEPPER_MOTOR_PARAMS
-
 MotorControl::MotorControl() {}
 
 void MotorControl::initalize() {

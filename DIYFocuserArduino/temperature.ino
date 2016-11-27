@@ -1,10 +1,6 @@
 #include <OneWire.h>                // needed for DS18B20 temperature probe
 #include <DallasTemperature.h>      // needed for DS18B20 temperature probe
 
-#ifndef TEMPSENSOR_PIN
-#define TEMP_PIN 2              // temperature probe on pin 2, use 4.7k pullup
-#endif // TEMP_PIN
-
 OneWire _onewire(TEMPSENSOR_PIN);
 DallasTemperature _sensor(&_onewire);
 
