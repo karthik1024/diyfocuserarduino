@@ -18,7 +18,7 @@ double TemperatureSensor::getTemp(bool force)
 {
 	if ((getTimeSinceLastTempCheck() > refresh_interval) || force) {
 		_sensor.requestTemperatures();
-		delay(600 / (1 << (12 - bitPrecision))); // should enough time to wait
+		delay(750 / (1 << (12 - bitPrecision))); // should enough time to wait
 												 // get channel 1 temperature, always in celsius
 		current_temp = _sensor.getTempCByIndex(0);
 		time_of_temp_reading = millis(); // Update time when temperature was measured.
