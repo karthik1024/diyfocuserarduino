@@ -26,22 +26,22 @@
 
 #define Buzzer A3 // Buzzer
 
-#ifndef LIQUIDCRYSTAL_I2C_PARAMS
+#ifndef LIQUIDCRYSTAL_PARAMS
 
-#define LIQUIDCRYSTAL_IC2_ADDRESS 0x3f // Address of the I2C Liquid Crystal Display module
-#define LIQUIDCRYSTAL_IC2_EN_PIN 2
-#define LIQUIDCRYSTAL_IC2_RW_PIN 1
-#define LIQUIDCRYSTAL_IC2_RS_PIN 0
-#define LIQUIDCRYSTAL_IC2_D4_PIN 4
-#define LIQUIDCRYSTAL_IC2_D5_PIN 5
-#define LIQUIDCRYSTAL_IC2_D6_PIN 6
-#define LIQUIDCRYSTAL_IC2_D7_PIN 7
-#define LIQUIDCRYSTAL_IC2_BACKLIGHT_PIN 3
-#define LIQUIDCRYSTAL_IC2_BACKLIGHT_POLARITY POSITIVE
-#define LIQUIDCRYSTAL_IC2_REFRESH_INTERVAL 100
-#define LIQUIDCRYSTAL_I2C_PARAMS
+#define LIQUIDCRYSTAL_ADDRESS 0x3f // Address of the I2C Liquid Crystal Display module
+#define LIQUIDCRYSTAL_EN_PIN 2
+#define LIQUIDCRYSTAL_RW_PIN 1
+#define LIQUIDCRYSTAL_RS_PIN 0
+#define LIQUIDCRYSTAL_D4_PIN 4
+#define LIQUIDCRYSTAL_D5_PIN 5
+#define LIQUIDCRYSTAL_D6_PIN 6
+#define LIQUIDCRYSTAL_D7_PIN 7
+#define LIQUIDCRYSTAL_BACKLIGHT_PIN 3
+#define LIQUIDCRYSTAL_BACKLIGHT_POLARITY POSITIVE
+#define LIQUIDCRYSTAL_REFRESH_INTERVAL 100
+#define LIQUIDCRYSTAL_PARAMS
 
-#endif // !LIQUIDCRYSTAL_I2C_PARAMS
+#endif // !LIQUIDCRYSTAL_PARAMS
 
 // Stepper Motor stuff, control pins for DRV8825 board, REV 203 ONLY
 #ifndef STEPPER_MOTOR_PARAMS
@@ -81,15 +81,15 @@ class TemperatureSensor
 private:
 	DeviceAddress address;
 
-	short bitPrecision;
-	double current_temp = 20.0;
-	long refresh_interval;
-	bool _isConnected = false;
-	long time_of_temp_reading = 0;
+	short mBitPrecision;
+	double mCurrentTemp = 20.0;
+	long mRefreshInterval;
+	bool mIsConnected = false;
+	long mTimeOfTempReading = 0;
 
 public:
 
-	TemperatureSensor(int _bitPrecision, long _refresh_interval);
+	TemperatureSensor(int bitPrecision, long refreshInterval);
 	double getTemp(bool force = false);
 	void setRefreshInterval(long interval);
 	bool isConnected();
@@ -102,13 +102,7 @@ class CommandProcessor
 public:
 	CommandProcessor();
 
-	char * processCommand(const char *command_string);
-	void cmdPosition();
-	void cmdHome();
-	void cmdMove(char * arg);
-	void cmdHalt();
-	void cmdMaxstep();
-	void cmdStepSize();
+	char * processCommand(const char *pCommandString);
 	void cmdTemperature();
 	void cmdHasTempProbe();
 	void cmdReset();
@@ -117,92 +111,88 @@ public:
 class SerialComm {
 
 private:
-	char commstring[SERIALCOMM_MAXINPUTSIZE + 1];
-	bool command_received = false;
-	short commstring_pos = 0;
-	char cmd_termination_char = '#';
+	char mCommString[SERIALCOMM_MAXINPUTSIZE + 1];
+	bool mCommandReceived = false;
+	short mCommStringPos = 0;
+	char mCommandTerminationChar = '#';
 
 public:
 	SerialComm();
-	SerialComm(const char cmd_termination_char);
+	SerialComm(const char commandTerminationChar);
 	bool commandReceived();
 	void serialEvent();
 	void reset();
-	void getCommand(char *dest);
+	void getCommand(char *pDest);
 };
 
 struct DeviceState
 {
-	double temperature;
-	char command[SERIALCOMM_MAXINPUTSIZE + 1];
-	SwitchState pbstate;
+	double mTemperature;
+	char mCommand[SERIALCOMM_MAXINPUTSIZE + 1];
+	SwitchState mPushButtonState;
 };
 
 class DisplayManager {
 private:
-	long refresh_interval;
-	long time_of_display_update = 0;
+	long mRefreshInterval;
+	long mTimeOfDisplayUpdate = 0;
 public:
-	DisplayManager(long _refresh_interval);
+	DisplayManager(long refreshInterval);
 	void begin();
-	void updateDisplay(DeviceState *ds);
+	void updateDisplay(DeviceState *pDS);
 	void setRefreshInterval(long interval);
 	long getTimeSinceLastDisplayUpdate();
 };
 
 class PushButtonState {
 private:
-	SwitchState state;
-	short switchpin;
-	long state_change_timestamp = 0;
-	long jog_start_timestamp = 0;
-	bool is_jogging = false;
+	SwitchState mState;
+	short mSwitchPin;
+	long mStateChangeTimestamp = 0;
+	long mJogStartTimestamp = 0;
+	bool mIsJogging = false;
 public:
-	PushButtonState(short SwitchPin);
-	SwitchState GetState();
+	PushButtonState(short switchPin);
+	SwitchState getState();
 	bool isJogging();
 };
 
 class MotorControl {
 private:
-	short microstep = STEPPER_DEFAULT_MICROSTEP;
-	bool isenabled = false;
-	StepperSpeed speed = MEDSPEED;
-	bool isreversed = false;
+	short mMicroStep = STEPPER_DEFAULT_MICROSTEP;
+	bool mIsEnabled = false;
+	StepperSpeed mSpeed = MEDSPEED;
+	bool mIsReversed = false;
 public:
 	MotorControl();
-	void Initalize();
-	void SetMicroStep(short MicroStep);
-	void SetEnable(bool _enable);
-	bool IsEnabled();
-	void Step(StepperDirection direction, int nSteps=1);
-	void SetReversed(bool truefalse);
-	bool IsReversed();
-	void SetDirection(StepperDirection direction);
-	void SetSpeed(StepperSpeed _speed);
-	StepperSpeed GetSpeed();
+	void initalize();
+	void setMicroStep(short microStep);
+	void setEnable(bool enable);
+	bool isEnabled();
+	void step(StepperDirection direction, int nSteps=1);
+	void setReversed(bool truefalse);
+	bool isReversed();
+	void setDirection(StepperDirection direction);
+	void setSpeed(StepperSpeed speed);
+	StepperSpeed getSpeed();
 };
 
-TemperatureSensor tempsensor(TEMPSENSOR_PRECISION, TEMPSENSOR_REFRESH_INTERVAL);
-CommandProcessor cmdprocessor;
-SerialComm serialcomm;
-DeviceState devicestate;
-DisplayManager displaymanager(LIQUIDCRYSTAL_IC2_REFRESH_INTERVAL);
-PushButtonState pbstate(PUSHBUTTON_SWITCH_PIN);
-MotorControl motorcontrol;
-
-int currentposition = 0; // Absolute position of focuser
-int maxstep = 1000; // Maximum steps allowed by focuser
-int stepsize = 1; // Step size
+TemperatureSensor tempSensor(TEMPSENSOR_PRECISION, TEMPSENSOR_REFRESH_INTERVAL);
+CommandProcessor cmdProcessor;
+SerialComm serialComm;
+DeviceState deviceState;
+DisplayManager displayManager(LIQUIDCRYSTAL_REFRESH_INTERVAL);
+PushButtonState pbState(PUSHBUTTON_SWITCH_PIN);
+MotorControl motorControl;
 
 // the setup function runs once when you press reset or power the board
 void setup() {
 	// Communication
 	Serial.begin(SERIALCOMM_BAUDRATE);
 	Serial.flush();
-	tempsensor.begin();
-	displaymanager.begin();
-	motorcontrol.Initalize();
+	tempSensor.begin();
+	displayManager.begin();
+	motorControl.initalize();
 	analogWrite(Buzzer, 1023);
 	delay(100);
 	analogWrite(Buzzer, 0);
@@ -210,39 +200,39 @@ void setup() {
 
 // the loop function runs over and over again until power down or reset
 void loop() {
-	char command_string[SERIALCOMM_MAXINPUTSIZE + 1];
+	char commandString[SERIALCOMM_MAXINPUTSIZE + 1];
 
 	// If a command has been received, nothing will get done until it has been processed.
-	if (serialcomm.commandReceived()) {
-		serialcomm.getCommand(command_string);
+	if (serialComm.commandReceived()) {
+		serialComm.getCommand(commandString);
 
-		char * cmd = cmdprocessor.processCommand(command_string);
-		strcpy(devicestate.command, cmd);
+		char * pCmd = cmdProcessor.processCommand(commandString);
+		strcpy(deviceState.mCommand, pCmd);
 
-		serialcomm.reset();
+		serialComm.reset();
 	}
 
 	// Get the state of the device from various sensors.
-	devicestate.temperature = tempsensor.getTemp();
+	deviceState.mTemperature = tempSensor.getTemp();
 
 	// Read push button
 	do {
-		devicestate.pbstate = pbstate.GetState();
+		deviceState.mPushButtonState = pbState.getState();
 
-		if (devicestate.pbstate == PBCLOCKWISE) {
-			motorcontrol.Step(CLOCKWISE);
+		if (deviceState.mPushButtonState == PBCLOCKWISE) {
+			motorControl.step(CLOCKWISE);
 		}
-		else if (devicestate.pbstate == PBANTICLOCKWISE) {
-			motorcontrol.Step(ANTICLOCKWISE);
+		else if (deviceState.mPushButtonState == PBANTICLOCKWISE) {
+			motorControl.step(ANTICLOCKWISE);
 		}
-	} while (pbstate.isJogging());
+	} while (pbState.isJogging());
 
 	// Update the LCD display based on the measured device state.
-	displaymanager.updateDisplay(&devicestate);
+	displayManager.updateDisplay(&deviceState);
 	
 }
 
 void serialEvent() {
-	serialcomm.serialEvent();
+	serialComm.serialEvent();
 }
 

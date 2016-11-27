@@ -6,32 +6,32 @@ SerialComm::SerialComm() {
 	reset();
 }
 
-SerialComm::SerialComm(const char _cmd_termination_char) {
-	cmd_termination_char = _cmd_termination_char;
+SerialComm::SerialComm(const char commandTerminationChar) {
+	mCommandTerminationChar = commandTerminationChar;
 	reset();
 }
 
 bool SerialComm::commandReceived() {
-	return command_received;
+	return mCommandReceived;
 }
 
 void SerialComm::serialEvent() {
 	char input;
 
 	// Read the serial port for commands only if current command has been processed
-	if (!command_received) {
-		while ((Serial.available() > 0) && commstring_pos <= SERIALCOMM_MAXINPUTSIZE) {
+	if (!mCommandReceived) {
+		while ((Serial.available() > 0) && mCommStringPos <= SERIALCOMM_MAXINPUTSIZE) {
 			input = Serial.read();  // Read in one character.
-			if (input == cmd_termination_char) { // End of command. Exit.
-				commstring[commstring_pos] = '\0'; // Null terminate input communication string.
-				command_received = true; // Raise flag that a command has been received and available to process.
+			if (input == mCommandTerminationChar) { // End of command. Exit.
+				mCommString[mCommStringPos] = '\0'; // Null terminate input communication string.
+				mCommandReceived = true; // Raise flag that a command has been received and available to process.
 				break;
 			}
-			commstring[commstring_pos] = input;
-			commstring_pos++;
+			mCommString[mCommStringPos] = input;
+			mCommStringPos++;
 		}
 
-		if (commstring_pos > SERIALCOMM_MAXINPUTSIZE) {
+		if (mCommStringPos > SERIALCOMM_MAXINPUTSIZE) {
 			// Command length exceeded while waiting for a command to come through.
 			// Reset and restart the process.
 			reset();
@@ -40,12 +40,12 @@ void SerialComm::serialEvent() {
 }
 
 void SerialComm::reset() {
-	commstring[0] = '\0';  //Null terminate start;
-	commstring_pos = 0;  //Reset index
-	command_received = false; 
+	mCommString[0] = '\0';  //Null terminate start;
+	mCommStringPos = 0;  //Reset index
+	mCommandReceived = false; 
 }
 
-void SerialComm::getCommand(char *dest) {
+void SerialComm::getCommand(char *pDest) {
 	// This function assumes that *dest has sufficient space for commstring to be copied over.
-	strcpy(dest, commstring);
+	strcpy(pDest, mCommString);
 }

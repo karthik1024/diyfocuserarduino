@@ -1,68 +1,27 @@
 CommandProcessor::CommandProcessor() {}
 
-char * CommandProcessor::processCommand(const char *command_string) {
+char * CommandProcessor::processCommand(const char *pCommandString) {
 	char command[SERIALCOMM_MAXINPUTSIZE + 1];
-	strcpy(command, command_string);
+	strcpy(command, pCommandString);
 
-	char *arg, *cmd;
-	cmd = arg = command;
-	cmd = strsep(&arg, " ");
+	char *pArg, *pCmd;
+	pCmd = pArg = command;
+	pCmd = strsep(&pArg, " ");
 
-	if (strcmp("POSITON", cmd) == 0) cmdPosition();
-	else if (strcmp("HOME", cmd) == 0) cmdHome();
-	else if (strcmp("MOVE", cmd) == 0) cmdMove(arg);
-	else if (strcmp("HALT", cmd) == 0) cmdHalt();
-	else if (strcmp("MAXSTEP", cmd) == 0) cmdMaxstep();
-	else if (strcmp("STEPSIZE", cmd) == 0) cmdStepSize();
-	else if (strcmp("TEMPERATURE", cmd) == 0) cmdTemperature();
-	else if (strcmp("HASTEMPPROBE", cmd) == 0) cmdHasTempProbe();
-	else if (strcmp("RESET", cmd) == 0) cmdReset();
+	if (strcmp("TEMPERATURE", pCmd) == 0) cmdTemperature();
+	else if (strcmp("HASTEMPPROBE", pCmd) == 0) cmdHasTempProbe();
+	else if (strcmp("RESET", pCmd) == 0) cmdReset();
 
-	return cmd;
-}
-
-// Get current position.
-void CommandProcessor::cmdPosition()
-{
-	Serial.print(currentposition);
-	Serial.println('#');
-}
-
-// Move focuser to home position.
-void CommandProcessor::cmdHome() {
-	delay(2000);
-	currentposition = 0;
-	cmdPosition();
-}
-
-void CommandProcessor::cmdMove(char * arg) {
-	int moveby = atoi(arg);
-	currentposition += moveby;
-	CommandProcessor::cmdPosition();
-}
-
-void CommandProcessor::cmdHalt() {
-	Serial.print("HALTED");
-	Serial.println('#');
-}
-
-void CommandProcessor::cmdMaxstep() {
-	Serial.print(maxstep);
-	Serial.println('#');
-}
-
-void CommandProcessor::cmdStepSize() {
-	Serial.print(stepsize);
-	Serial.println('#');
+	return pCmd;
 }
 
 void CommandProcessor::cmdTemperature() {
-	Serial.print(tempsensor.getTemp());
+	Serial.print(tempSensor.getTemp());
 	Serial.println('#');
 }
 
 void CommandProcessor::cmdHasTempProbe() {
-	Serial.print(tempsensor.isConnected());
+	Serial.print(tempSensor.isConnected());
 	Serial.println('#');
 }
 

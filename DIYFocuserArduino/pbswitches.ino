@@ -1,64 +1,64 @@
 
-PushButtonState::PushButtonState(short SwitchPin) {
-		switchpin = SwitchPin;
-		state = NONE;
+PushButtonState::PushButtonState(short switchPin) {
+		mSwitchPin = switchPin;
+		mState = NONE;
 	}
 
-SwitchState PushButtonState::GetState() {
-	int readval = analogRead(switchpin);
-	long time_in_new_state;
-	long time_jogging;
-	SwitchState newstate;
+SwitchState PushButtonState::getState() {
+	int readVal = analogRead(mSwitchPin);
+	long timeInNewState;
+	long timeJogging;
+	SwitchState newState;
 
-	if (readval > 200 && readval < 400) {
-		newstate = PBCLOCKWISE;
+	if (readVal > 200 && readVal < 400) {
+		newState = PBCLOCKWISE;
 	}
-	else if (readval >= 400 && readval < 600) {
-		newstate = BOTH;
+	else if (readVal >= 400 && readVal < 600) {
+		newState = BOTH;
 	}
-	else if (readval >= 600 && readval < 800) {
-		newstate = PBANTICLOCKWISE;
+	else if (readVal >= 600 && readVal < 800) {
+		newState = PBANTICLOCKWISE;
 	}
 
 	else {
-		newstate = NONE;
+		newState = NONE;
 	}
 
-	if (newstate != state) {
+	if (newState != mState) {
 
 		// If state changed, we cannot be jogging.
-		jog_start_timestamp = 0;
-		is_jogging = false;
+		mJogStartTimestamp = 0;
+		mIsJogging = false;
 
-		if (state_change_timestamp == 0) {  // This is the first time we are seeing the toggle
-			state_change_timestamp = millis();   // Start counting how long we are in this state.
+		if (mStateChangeTimestamp == 0) {  // This is the first time we are seeing the toggle
+			mStateChangeTimestamp = millis();   // Start counting how long we are in this state.
 		}
 
-		time_in_new_state = millis() - state_change_timestamp;
+		timeInNewState = millis() - mStateChangeTimestamp;
 
 		// Check if we have been in the new state for a sufficiently long duration
-		if (time_in_new_state > PUSHBUTTON_MIN_TIME_BEFORE_STATE_CHANGE) { 
-			state = newstate;
-			state_change_timestamp = 0;
+		if (timeInNewState > PUSHBUTTON_MIN_TIME_BEFORE_STATE_CHANGE) { 
+			mState = newState;
+			mStateChangeTimestamp = 0;
 		}
 	} 
-	else if (!is_jogging)
+	else if (!mIsJogging)
 	{
-		if (jog_start_timestamp == 0) { // This is the first time we are checking for jogging
-			jog_start_timestamp = millis();
+		if (mJogStartTimestamp == 0) { // This is the first time we are checking for jogging
+			mJogStartTimestamp = millis();
 		}
 
-		time_jogging = millis() - jog_start_timestamp;
+		timeJogging = millis() - mJogStartTimestamp;
 		
 		// Check if we have been in the current state for a sufficiently long duration
-		if (time_jogging > PUSHBUTTON_MIN_TIME_BEFORE_JOGGING) { 
-			is_jogging = true;
+		if (timeJogging > PUSHBUTTON_MIN_TIME_BEFORE_JOGGING) { 
+			mIsJogging = true;
 		}
 	}
 
-	return state;
+	return mState;
 }
 
 bool PushButtonState::isJogging() {
-	return is_jogging;
+	return mIsJogging;
 }

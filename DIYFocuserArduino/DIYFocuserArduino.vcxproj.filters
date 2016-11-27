@@ -27,8 +27,8 @@
     <None Include="temperature.ino" />
     <None Include="commands.ino" />
     <None Include="serialcomm.ino" />
-    <None Include="liquidcrystali2c.ino" />
     <None Include="motorcontrol.ino" />
     <None Include="pbswitches.ino" />
+    <None Include="liquidcrystal.ino" />
   </ItemGroup>
 </Project>
