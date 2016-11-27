@@ -22,7 +22,7 @@ void MotorControl::Initalize() {
 
 	SetDirection(CLOCKWISE);
 	digitalWrite(STEPPER_STEP_PIN, 0); 
-	SetEnable(false); // Disable stepper unless explicitly enabled.
+	SetEnable(true);
 	SetMicroStep(STEPPER_DEFAULT_MICROSTEP);
 }
 
@@ -34,12 +34,14 @@ void MotorControl::SetMicroStep(short _MicroStep) {
 		digitalWrite(STEPPER_MICROSTEP_PIN0, LOW);
 		digitalWrite(STEPPER_MICROSTEP_PIN1, LOW);
 		digitalWrite(STEPPER_MICROSTEP_PIN2, LOW);
+		speed = speed;
 		break;
 	case 2:
 		// 1/2 (Half) Step
 		digitalWrite(STEPPER_MICROSTEP_PIN0, HIGH);
 		digitalWrite(STEPPER_MICROSTEP_PIN1, LOW);
 		digitalWrite(STEPPER_MICROSTEP_PIN2, LOW);
+		speed = speed;
 		break;
 	case 4:
 		// 1/4 (Quarter) Step
@@ -103,8 +105,21 @@ void MotorControl::Step(StepperDirection direction, int nSteps) {
 		// TODO: Implement safety here (maxsteps and minsteps)
 		analogWrite(STEPPER_STEPINDICATOR_LED_PIN, 1023);  //Indicate a step via the LED
 		digitalWrite(STEPPER_STEP_PIN, HIGH);
-		delayMicroseconds(speed);
+		delayMicroseconds((int)STEPPER_ON_TIME);
 		digitalWrite(STEPPER_STEP_PIN, LOW);
+
+		switch (microstep) {
+		case 1:
+			delayMicroseconds(speed);
+			break;
+		case 2:
+			delayMicroseconds((int)(speed / 2));
+			break;
+		default:
+			delayMicroseconds((int)(speed / 4));
+			break;
+		}
+
 		analogWrite(STEPPER_STEPINDICATOR_LED_PIN, 0); 
 	}
 } 

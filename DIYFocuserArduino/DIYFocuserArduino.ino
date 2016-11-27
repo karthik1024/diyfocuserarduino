@@ -16,7 +16,14 @@
 #define TEMPSENSOR_REFRESH_INTERVAL 5000 // In milli seconds.
 #define TEMPSENSOR_PIN 2              // temperature probe on pin 2, use 4.7k pullup
 
-#define PBswitchesPin  A0   // push button switches wired to A0 via resistor divider network
+#ifndef PUSHBUTTON_PARAMS
+
+#define PUSHBUTTON_MIN_TIME_BEFORE_STATE_CHANGE 100
+#define PUSHBUTTON_MIN_TIME_BEFORE_JOGGING 1000
+#define PUSHBUTTON_SWITCH_PIN  A0   // push button switches wired to A0 via resistor divider network
+
+#endif // !PUSHBUTTON_PARAMS
+
 #define Buzzer A3 // Buzzer
 
 #ifndef LIQUIDCRYSTAL_I2C_PARAMS
@@ -48,12 +55,26 @@
 #define STEPPER_ENABLEPIN  8
 
 #define STEPPER_ON_TIME 5 // stepontime - time in microseconds that coil power is ON for one step, board requires 2us pulse
-#define STEPPER_DEFAULT_MICROSTEP 1 // Valid values are 1, 2, 4, 8, 16, 32.
+#define STEPPER_DEFAULT_MICROSTEP 32 // Valid values are 1, 2, 4, 8, 16, 32.
 #endif // !STEPPER_MOTOR_PARAMS
 
-typedef enum SwitchState { NONE = 0, RED = 1, GREEN = 2, BOTH = 3 } SwitchState;
-typedef enum StepperDirection { CLOCKWISE = 0, ANTICLOCKWISE = 1} StepperDirection;
-typedef enum StepperSpeed {LOWSPEED = 4000, MEDSPEED = 2400, HIGHSPEED = 1800} StepperSpeed;
+typedef enum SwitchState {
+	NONE = 0,
+	PBCLOCKWISE = 1,
+	PBANTICLOCKWISE = 2,
+	BOTH = 3,
+} SwitchState;
+
+typedef enum StepperDirection { 
+	CLOCKWISE = 0, 
+	ANTICLOCKWISE = 1
+} StepperDirection;
+
+typedef enum StepperSpeed {
+	LOWSPEED = 4000, 
+	MEDSPEED = 2400, 
+	HIGHSPEED = 1800
+} StepperSpeed;
 
 class TemperatureSensor
 {
@@ -129,16 +150,17 @@ public:
 	long getTimeSinceLastDisplayUpdate();
 };
 
-class PBState {
+class PushButtonState {
 private:
 	SwitchState state;
 	short switchpin;
-	long toggle_timestamp = 0;
-	int min_time_before_change_state = 100; 
+	long state_change_timestamp = 0;
+	long jog_start_timestamp = 0;
+	bool is_jogging = false;
 public:
-	PBState(short SwitchPin);
-	PBState(short SwitchPin, long MinTimeBeforeStateChange);
+	PushButtonState(short SwitchPin);
 	SwitchState GetState();
+	bool isJogging();
 };
 
 class MotorControl {
@@ -166,7 +188,7 @@ CommandProcessor cmdprocessor;
 SerialComm serialcomm;
 DeviceState devicestate;
 DisplayManager displaymanager(LIQUIDCRYSTAL_IC2_REFRESH_INTERVAL);
-PBState pbstate(PBswitchesPin);
+PushButtonState pbstate(PUSHBUTTON_SWITCH_PIN);
 MotorControl motorcontrol;
 
 int currentposition = 0; // Absolute position of focuser
@@ -204,14 +226,16 @@ void loop() {
 	devicestate.temperature = tempsensor.getTemp();
 
 	// Read push button
-	devicestate.pbstate = pbstate.GetState();
+	do {
+		devicestate.pbstate = pbstate.GetState();
 
-	if (devicestate.pbstate == 1) {
-		motorcontrol.Step(CLOCKWISE);
-	} 
-	else if (devicestate.pbstate == 2) {
-		motorcontrol.Step(ANTICLOCKWISE);
-	}
+		if (devicestate.pbstate == PBCLOCKWISE) {
+			motorcontrol.Step(CLOCKWISE);
+		}
+		else if (devicestate.pbstate == PBANTICLOCKWISE) {
+			motorcontrol.Step(ANTICLOCKWISE);
+		}
+	} while (pbstate.isJogging());
 
 	// Update the LCD display based on the measured device state.
 	displaymanager.updateDisplay(&devicestate);
