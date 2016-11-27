@@ -27,13 +27,52 @@ void DisplayManager::updateDisplay(DeviceState *pDS) {
 
 		// Temperature
 		_lcd.clear();
-		_lcd.print("T=");
 		_lcd.print(pDS->mTemperature);
-		_lcd.print("C");
+		_lcd.print("C ");
 
-		// PB
-		_lcd.print(" PB=");
-		_lcd.print(pDS->mPushButtonState);
+		// Push button state
+		switch (pDS->mPushButtonState)
+		{
+		case PBCLOCKWISE:
+			_lcd.print("CK ");
+			break;
+		case PBANTICLOCKWISE:
+			_lcd.print("ACK");
+			break;
+		case NONE:
+			_lcd.print("   ");
+			break;
+		default:
+			break;
+		}
+
+		// Jogging
+		if (pDS->mIsJogging) {
+			_lcd.print("-J ");
+		}
+		else {
+			_lcd.print("   ");
+		}
+		
+		// Stepper Speed
+		switch (pDS->mSpeed)
+		{
+		case LOWSPEED:
+			_lcd.print("L");
+			break;
+		case MEDSPEED:
+			_lcd.print("M");
+			break;
+		case HIGHSPEED:
+			_lcd.print("H");
+			break;
+		default:
+			_lcd.print(" ");
+			break;
+		}
+
+		// Stepper Microstep
+		_lcd.print(pDS->mMicroStep);
 
 		// Command
 		_lcd.setCursor(0, 1);

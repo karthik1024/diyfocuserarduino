@@ -130,6 +130,9 @@ struct DeviceState
 	double mTemperature;
 	char mCommand[SERIALCOMM_MAXINPUTSIZE + 1];
 	SwitchState mPushButtonState;
+	bool mIsJogging;
+	StepperSpeed mSpeed;
+	short mMicroStep;
 };
 
 class DisplayManager {
@@ -167,6 +170,7 @@ public:
 	MotorControl();
 	void initalize();
 	void setMicroStep(short microStep);
+	short getMicroStep();
 	void setEnable(bool enable);
 	bool isEnabled();
 	void step(StepperDirection direction, int nSteps=1);
@@ -212,12 +216,14 @@ void loop() {
 		serialComm.reset();
 	}
 
-	// Get the state of the device from various sensors.
-	deviceState.mTemperature = tempSensor.getTemp();
-
 	// Read push button
 	do {
+		// Get the state of the device from various sensors.
+		deviceState.mTemperature = tempSensor.getTemp();
+		deviceState.mSpeed = motorControl.getSpeed();
+		deviceState.mMicroStep = motorControl.getMicroStep();
 		deviceState.mPushButtonState = pbState.getState();
+		deviceState.mIsJogging = pbState.isJogging();
 
 		if (deviceState.mPushButtonState == PBCLOCKWISE) {
 			motorControl.step(CLOCKWISE);
@@ -225,10 +231,12 @@ void loop() {
 		else if (deviceState.mPushButtonState == PBANTICLOCKWISE) {
 			motorControl.step(ANTICLOCKWISE);
 		}
+
+		// Update the LCD display based on the measured device state.
+		displayManager.updateDisplay(&deviceState);
 	} while (pbState.isJogging());
 
-	// Update the LCD display based on the measured device state.
-	displayManager.updateDisplay(&deviceState);
+
 	
 }
 

@@ -29,6 +29,6 @@
     <None Include="serialcomm.ino" />
     <None Include="motorcontrol.ino" />
     <None Include="pbswitches.ino" />
-    <None Include="liquidcrystal.ino" />
+    <None Include="displaymanager.ino" />
   </ItemGroup>
 </Project>

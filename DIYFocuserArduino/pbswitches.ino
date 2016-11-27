@@ -42,7 +42,7 @@ SwitchState PushButtonState::getState() {
 			mStateChangeTimestamp = 0;
 		}
 	} 
-	else if (!mIsJogging)
+	else if (!mIsJogging && (mState != NONE))
 	{
 		if (mJogStartTimestamp == 0) { // This is the first time we are checking for jogging
 			mJogStartTimestamp = millis();

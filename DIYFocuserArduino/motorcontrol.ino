@@ -63,6 +63,10 @@ void MotorControl::setMicroStep(short microStep) {
 	mMicroStep = microStep;
 }
 
+short MotorControl::getMicroStep() {
+	return mMicroStep;
+}
+
 void MotorControl::setEnable(bool enable) {
 	if (enable == true) {
 		digitalWrite(STEPPER_ENABLEPIN, LOW); 
