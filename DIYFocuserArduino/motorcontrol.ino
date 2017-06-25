@@ -98,17 +98,17 @@ void MotorControl::step(StepperDirection direction, int nSteps) {
 		delayMicroseconds((int)STEPPER_ON_TIME);
 		digitalWrite(STEPPER_STEP_PIN, LOW);
 
-		mSteps = actualDirection == CLOCKWISE ? mSteps + 1 : mSteps - 1;
+		mCurrentStep = actualDirection == CLOCKWISE ? mCurrentStep + 1 : mCurrentStep - 1;
 
 		switch (mMicroStep) {
 		case 1:
-			delayMicroseconds(mSpeed);
+			delayMicroseconds(mCurrentSpeed);
 			break;
 		case 2:
-			delayMicroseconds((int)(mSpeed / 2));
+			delayMicroseconds((int)(mCurrentSpeed / 2));
 			break;
 		default:
-			delayMicroseconds((int)(mSpeed / 4));
+			delayMicroseconds((int)(mCurrentSpeed / 4));
 			break;
 		}
 
@@ -116,8 +116,8 @@ void MotorControl::step(StepperDirection direction, int nSteps) {
 	}
 } 
 
-long MotorControl::getStep() {
-	return mSteps;
+long MotorControl::getCurrentStep() {
+	return mCurrentStep;
 }
 
 void MotorControl::setReversed(bool truefalse) {
@@ -138,10 +138,10 @@ void MotorControl::setDirection(StepperDirection direction) {
 }
 
 void MotorControl::setSpeed(StepperSpeed speed) {
-	mSpeed = speed;
+	mCurrentSpeed = speed;
 }
 
-StepperSpeed MotorControl::getSpeed() {
-	return mSpeed;
+StepperSpeed MotorControl::getCurrentSpeed() {
+	return mCurrentSpeed;
 }
 

@@ -4,7 +4,7 @@ PushButtonState::PushButtonState(short switchPin) {
 		mState = NONE;
 	}
 
-SwitchState PushButtonState::getState() {
+SwitchState PushButtonState::determinePushButtonState() {
 	int readVal = analogRead(mSwitchPin);
 	long timeInNewState;
 	long timeJogging;
@@ -19,7 +19,6 @@ SwitchState PushButtonState::getState() {
 	else if (readVal >= 600 && readVal < 800) {
 		newState = PBANTICLOCKWISE;
 	}
-
 	else {
 		newState = NONE;
 	}
@@ -37,7 +36,7 @@ SwitchState PushButtonState::getState() {
 		timeInNewState = millis() - mStateChangeTimestamp;
 
 		// Check if we have been in the new state for a sufficiently long duration
-		if (timeInNewState > PUSHBUTTON_MIN_TIME_BEFORE_STATE_CHANGE) { 
+		if (timeInNewState > PUSHBUTTON_MIN_TIME_MS_BEFORE_STATE_CHANGE) { 
 			mState = newState;
 			mStateChangeTimestamp = 0;
 		}
@@ -51,7 +50,7 @@ SwitchState PushButtonState::getState() {
 		timeJogging = millis() - mJogStartTimestamp;
 		
 		// Check if we have been in the current state for a sufficiently long duration
-		if (timeJogging > PUSHBUTTON_MIN_TIME_BEFORE_JOGGING) { 
+		if (timeJogging > PUSHBUTTON_MIN_TIME_MS_BEFORE_JOGGING) { 
 			mIsJogging = true;
 		}
 	}

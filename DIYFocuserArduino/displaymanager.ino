@@ -12,7 +12,7 @@ LiquidCrystal_I2C _lcd(
 );
 
 DisplayManager::DisplayManager(long refreshInterval) {
-	mRefreshInterval = refreshInterval;
+	mRefreshIntervalMilliSecond = refreshInterval;
 }
 
 void DisplayManager::begin() {
@@ -23,11 +23,11 @@ void DisplayManager::begin() {
 }
 
 void DisplayManager::updateDisplay(DeviceState *pDS) {
-	if (getTimeSinceLastDisplayUpdate() > mRefreshInterval) {
+	if (getTimeSinceLastDisplayUpdate() > mRefreshIntervalMilliSecond) {
 
 		// Temperature
 		_lcd.clear();
-		_lcd.print(pDS->mTemperature);
+		_lcd.print(pDS->mCurrentTemperatureC);
 		_lcd.print("C ");
 
 		// Push button state
@@ -55,7 +55,7 @@ void DisplayManager::updateDisplay(DeviceState *pDS) {
 		}
 		
 		// Stepper Speed
-		switch (pDS->mSpeed)
+		switch (pDS->mCurrentSpeed)
 		{
 		case LOWSPEED:
 			_lcd.print("L");
@@ -76,13 +76,14 @@ void DisplayManager::updateDisplay(DeviceState *pDS) {
 
 		// Command
 		_lcd.setCursor(0, 1);
-		_lcd.print(pDS->mSteps);
+		_lcd.print(pDS->mCurrentStep);
+		//TODO: Handle overflow.
 		mTimeOfDisplayUpdate = millis(); // Update time when temperature was measured. 
 	}
 }
 
 void DisplayManager::setRefreshInterval(long interval) {
-	mRefreshInterval = interval;
+	mRefreshIntervalMilliSecond = interval;
 }
 
 long DisplayManager::getTimeSinceLastDisplayUpdate() {

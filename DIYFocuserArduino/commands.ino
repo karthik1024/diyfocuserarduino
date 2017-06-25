@@ -16,7 +16,7 @@ char * CommandProcessor::processCommand(const char *pCommandString) {
 }
 
 void CommandProcessor::cmdTemperature() {
-	Serial.print(tempSensor.getTemp());
+	Serial.print(tempSensor.getCurrentTemp());
 	Serial.println('#');
 }
 

@@ -6,17 +6,18 @@ DallasTemperature _sensor(&_onewire);
 
 TemperatureSensor::TemperatureSensor(int bitPrecision, long refreshInterval)
 {
-	mRefreshInterval = refreshInterval;
+	mRefreshIntervalMilliSecond = refreshInterval;
 	mBitPrecision = bitPrecision;
 }
 
-double TemperatureSensor::getTemp(bool force)
+double TemperatureSensor::getCurrentTemp(bool force)
 {
-	if ((getTimeSinceLastTempCheck() > mRefreshInterval) || force) {
+	if ((getTimeSinceLastTempCheck() > mRefreshIntervalMilliSecond) || force) {
 		_sensor.requestTemperatures();
 		delay(750 / (1 << (12 - mBitPrecision))); // should enough time to wait
 												 // get channel 1 temperature, always in celsius
 		mCurrentTemp = _sensor.getTempCByIndex(0);
+		// TODO: Handle overflow.
 		mTimeOfTempReading = millis(); // Update time when temperature was measured.
 	}
 
@@ -25,7 +26,7 @@ double TemperatureSensor::getTemp(bool force)
 }
 
 void TemperatureSensor::setRefreshInterval(long interval) {
-	mRefreshInterval = interval;
+	mRefreshIntervalMilliSecond = interval;
 }
 
 bool TemperatureSensor::isConnected() {
@@ -44,5 +45,5 @@ void TemperatureSensor::begin()
 	_sensor.getDeviceCount();
 	_sensor.getAddress(address, 0);
 	_sensor.setResolution(address, mBitPrecision);
-	getTemp();
+	getCurrentTemp();
 }
