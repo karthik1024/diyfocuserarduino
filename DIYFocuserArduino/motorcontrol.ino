@@ -145,3 +145,17 @@ StepperSpeed MotorControl::getCurrentSpeed() {
 	return mCurrentSpeed;
 }
 
+void MotorControl::toggleSpeed() {
+	switch (mCurrentSpeed)
+	{
+	case LOWSPEED:
+		motorControl.setSpeed(MEDSPEED);
+		break;
+	case MEDSPEED:
+		motorControl.setSpeed(HIGHSPEED);
+		break;
+	case HIGHSPEED:
+		motorControl.setSpeed(LOWSPEED);
+		break;
+	}
+}

@@ -40,6 +40,7 @@ void DisplayManager::updateDisplay(DeviceState *pDS) {
 			_lcd.print("ACK");
 			break;
 		case NONE:
+		case BOTH:
 			_lcd.print("   ");
 			break;
 		default:

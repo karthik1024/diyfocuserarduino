@@ -26,7 +26,7 @@
 #ifndef PUSHBUTTON_PARAMS
 
 // The minimum time a button has to be pressed to cause a state change.
-#define PUSHBUTTON_MIN_TIME_MS_BEFORE_STATE_CHANGE 100
+#define PUSHBUTTON_MIN_TIME_MS_BEFORE_STATE_CHANGE 300
 // The minimum time a button has to be pressed to consider the state to be "jogging".
 #define PUSHBUTTON_MIN_TIME_MS_BEFORE_JOGGING 1000
 // push button switches wired to Arduino A0 pin via resistor divider network.
@@ -209,6 +209,7 @@ public:
 	void setDirection(StepperDirection direction);
 	void setSpeed(StepperSpeed speed);
 	StepperSpeed getCurrentSpeed();
+	void toggleSpeed();
 };
 
 /*Create instates of all control classes that will be used throughout the life of the program
@@ -275,6 +276,9 @@ void loop() {
 		case PBANTICLOCKWISE:
 			motorControl.step(ANTICLOCKWISE);
 			break;
+		case BOTH:
+			// Cycle through stepper job speed when both push buttons have been pressed.
+			motorControl.toggleSpeed();
 		}
 		
 		// Update the LCD display based on the device state.
