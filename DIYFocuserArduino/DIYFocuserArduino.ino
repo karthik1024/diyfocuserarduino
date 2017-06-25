@@ -284,6 +284,7 @@ void loop() {
 		// Update the LCD display based on the device state.
 		displayManager.updateDisplay(&deviceState);
 	} while (pbState.isJogging()); // Update display even when jogging.
+	delay(100);
 }
 
 void serialEvent() {
