@@ -4,40 +4,27 @@
  Author:	Karthik
 */
 
+#include <Bounce2.h>
 #include <LiquidCrystal_I2C.h>
 #include <Arduino.h>
-// needed for DS18B20 temperature probe
 #include <OneWire.h> 
 #include <DallasTemperature.h> 
 
-// Serial communication speed.
-#define SERIALCOMM_BAUDRATE 57600
-// Maximum length of input command + arguments. 
-#define SERIALCOMM_MAXINPUTSIZE 32 
 
-// Set the DS18B20 precision to 0.25 of a degree 9=0.5, 10=0.25, 
-// 11=0.125, 12=0.0625.
-#define TEMPSENSOR_PRECISION_BITS 10 
-// Temp sensor reading is refreshed with this interval.
-#define TEMPSENSOR_REFRESH_INTERVAL_MILLISECOND 5000
-// temperature probe on Arduini pin D2, use 4.7k pullup.
-#define TEMPSENSOR_PIN 2              
+#define SERIALCOMM_BAUDRATE 57600 // Serial communication speed.
+#define SERIALCOMM_MAXINPUTSIZE 32 // Maximum length of input command + arguments. 
 
-#ifndef PUSHBUTTON_PARAMS
+#define TEMPSENSOR_PRECISION_BITS 10 // Set the DS18B20 precision to 0.25 of a degree 9=0.5, 10=0.25, 11=0.125, 12=0.0625.
+#define TEMPSENSOR_REFRESH_INTERVAL_MILLISECOND 5000 // Temp sensor reading is refreshed with this interval.
+#define TEMPSENSOR_PIN 2 // temperature probe on Arduini pin D2, use 4.7k pullup.        
 
-// The minimum time a button has to be pressed to cause a state change.
-#define PUSHBUTTON_MIN_TIME_MS_BEFORE_STATE_CHANGE 300
-// The minimum time a button has to be pressed to consider the state to be "jogging".
-#define PUSHBUTTON_MIN_TIME_MS_BEFORE_JOGGING 1000
-// push button switches wired to Arduino A0 pin via resistor divider network.
-#define PUSHBUTTON_SWITCH_PIN  A0   
 
-#endif // !PUSHBUTTON_PARAMS
 
-// The buzzer is connected to Arduino pin A3.
-#define Buzzer A3 // Buzzer
+#define PUSHBUTTON_MIN_TIME_MS_BEFORE_STATE_CHANGE 300 // The minimum time a button has to be pressed to cause a state change.
+#define PUSHBUTTON_MIN_TIME_MS_BEFORE_JOGGING 1000 // The minimum time a button has to be pressed to consider the state to be "jogging".
+#define PUSHBUTTON_SWITCH_PIN  A0 // push button switches wired to Arduino A0 pin via resistor divider network.
 
-#ifndef LIQUIDCRYSTAL_PARAMS
+#define Buzzer A3 // The buzzer is connected to Arduino pin A3.
 
 #define LIQUIDCRYSTAL_ADDRESS 0x3f // Address of the I2C Liquid Crystal Display module
 #define LIQUIDCRYSTAL_EN_PIN 2
@@ -52,11 +39,7 @@
 #define LIQUIDCRYSTAL_REFRESH_INTERVAL_MILLISECOND 500  // Display update interval.
 #define LIQUIDCRYSTAL_PARAMS
 
-#endif // !LIQUIDCRYSTAL_PARAMS
-
 // Stepper Motor stuff, control pins for DRV8825 board, REV 203 ONLY
-#ifndef STEPPER_MOTOR_PARAMS
-
 #define STEPPER_STEPINDICATOR_LED_PIN A1
 #define STEPPER_DIRECTION_PIN 3
 #define STEPPER_STEP_PIN 4
@@ -65,11 +48,10 @@
 #define STEPPER_MICROSTEP_PIN0 7  // microstepping lines
 #define STEPPER_ENABLEPIN  8
 
-// Time in microseconds that coil power is ON for one step, board requires 2us pulse
-#define STEPPER_ON_TIME 5
+
+#define STEPPER_ON_TIME 5 // Time in microseconds that coil power is ON for one step, board requires 2us pulse
 #define STEPPER_DEFAULT_MICROSTEP 1 // Valid values are 1, 2, 4, 8, 16, 32.
 #define STEPPER_DEFAULT_SPEED HIGHSPEED // Valid values are part of enum StepperSpeed
-#endif // !STEPPER_MOTOR_PARAMS
 
 typedef enum SwitchState {
 	/*Define push button states.*/
@@ -131,13 +113,10 @@ public:
 class SerialComm {
 	/*Class to handle serial communication*/
 private:
-	// Buffer to hold command strings.
-	char mCommString[SERIALCOMM_MAXINPUTSIZE + 1];
+	char mCommString[SERIALCOMM_MAXINPUTSIZE + 1]; // Buffer to hold command strings.
 	bool mCommandReceived = false;
-	// Static allocation for variable to ensure command string doesnt' exceed max input size.
-	short mCommStringPos = 0;
-	// All commands need to be terminated with this character.
-	char mCommandTerminationChar = '#';
+	short mCommStringPos = 0; // Static allocation for variable to ensure command string doesnt' exceed max input size.
+	char mCommandTerminationChar = '#'; // All commands need to be terminated with this character.
 
 public:
 	SerialComm();
