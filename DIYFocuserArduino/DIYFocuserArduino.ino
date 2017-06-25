@@ -10,7 +10,6 @@
 #include <OneWire.h> 
 #include <DallasTemperature.h> 
 
-
 #define SERIALCOMM_BAUDRATE 57600 // Serial communication speed.
 #define SERIALCOMM_MAXINPUTSIZE 32 // Maximum length of input command + arguments. 
 
@@ -18,11 +17,12 @@
 #define TEMPSENSOR_REFRESH_INTERVAL_MILLISECOND 5000 // Temp sensor reading is refreshed with this interval.
 #define TEMPSENSOR_PIN 2 // temperature probe on Arduini pin D2, use 4.7k pullup.        
 
-
-
 #define PUSHBUTTON_MIN_TIME_MS_BEFORE_STATE_CHANGE 300 // The minimum time a button has to be pressed to cause a state change.
 #define PUSHBUTTON_MIN_TIME_MS_BEFORE_JOGGING 1000 // The minimum time a button has to be pressed to consider the state to be "jogging".
 #define PUSHBUTTON_SWITCH_PIN  A0 // push button switches wired to Arduino A0 pin via resistor divider network.
+
+#define HOMEBUTTON 12 // Home button is connect to Arduino pin D12.
+#define HOMEBUTTON_DEBOUNCE_INTERVAL_MILLISECOND 100 // Home button debounce interval.
 
 #define Buzzer A3 // The buzzer is connected to Arduino pin A3.
 
@@ -48,10 +48,10 @@
 #define STEPPER_MICROSTEP_PIN0 7  // microstepping lines
 #define STEPPER_ENABLEPIN  8
 
-
 #define STEPPER_ON_TIME 5 // Time in microseconds that coil power is ON for one step, board requires 2us pulse
 #define STEPPER_DEFAULT_MICROSTEP 1 // Valid values are 1, 2, 4, 8, 16, 32.
 #define STEPPER_DEFAULT_SPEED HIGHSPEED // Valid values are part of enum StepperSpeed
+#define STEPPER_DIRECTION_IN ANTICLOCKWISE // The direction that causes the focuser to move inside the telescope.
 
 typedef enum SwitchState {
 	/*Define push button states.*/
@@ -71,7 +71,7 @@ typedef enum StepperSpeed {
 	/*Define speed options for the stepper motor while jogging.*/
 	// Number of microseconds to wait between each step while jogging. 
 	// Lower numbers results in faster jogs.
-	LOWSPEED = 4800, 
+	LOWSPEED = 3600, 
 	MEDSPEED = 2400, 
 	HIGHSPEED = 1200
 } StepperSpeed;
@@ -108,6 +108,9 @@ public:
 	void cmdTemperature();
 	void cmdHasTempProbe();
 	void cmdReset();
+	void cmdHome();
+	void cmdEnable();
+	void cmdDisable();
 };
 
 class SerialComm {
@@ -174,8 +177,9 @@ private:
 	StepperSpeed mCurrentSpeed = STEPPER_DEFAULT_SPEED;
 	bool mIsReversed = false;
 	long mCurrentStep;  // Current number of steps taken from home position.
+	Bounce *mHomePositionButton;
 public:
-	MotorControl();
+	MotorControl(Bounce &homeButton);
 	void initalize();
 	void setMicroStep(short microStep);
 	short getMicroStep();
@@ -189,30 +193,41 @@ public:
 	void setSpeed(StepperSpeed speed);
 	StepperSpeed getCurrentSpeed();
 	void toggleSpeed();
+	void homeStepper();
 };
 
 /*Create instates of all control classes that will be used throughout the life of the program
 to control the focuser.
 */
+Bounce homePositionButton = Bounce();
 TemperatureSensor tempSensor(TEMPSENSOR_PRECISION_BITS, TEMPSENSOR_REFRESH_INTERVAL_MILLISECOND);
 CommandProcessor cmdProcessor;
 SerialComm serialComm;
 DeviceState deviceState;
 DisplayManager displayManager(LIQUIDCRYSTAL_REFRESH_INTERVAL_MILLISECOND);
 PushButtonState pbState(PUSHBUTTON_SWITCH_PIN);
-MotorControl motorControl;
+MotorControl motorControl(homePositionButton);
 
 // the setup function runs once when you press reset or power the board
 void setup() {
 	// Setup serial communication.
 	Serial.begin(SERIALCOMM_BAUDRATE);
 	Serial.flush();
+	
 	// Start the temperature sensor.
 	tempSensor.begin();
+	
 	// Start the LCD display
 	displayManager.begin();
+	
 	// Initialize the stepper motor.
 	motorControl.initalize();
+
+	// Setup home position button.
+	pinMode(HOMEBUTTON, INPUT);
+	homePositionButton.attach(HOMEBUTTON);
+	homePositionButton.interval(HOMEBUTTON_DEBOUNCE_INTERVAL_MILLISECOND);
+
 	// Beep to indicate startup.
 	analogWrite(Buzzer, 1023);
 	delay(100);
@@ -225,9 +240,9 @@ void loop() {
 	so, handle it before doing anything else. If not, update display and
 	perform actions if any of the push buttons are pressed.
 	*/
-	char commandString[SERIALCOMM_MAXINPUTSIZE + 1];
 
-	// If a command has been received, nothing will get done until it has been processed.
+ 	// If a command has been received, nothing will get done until it has been processed.
+	char commandString[SERIALCOMM_MAXINPUTSIZE + 1];
 	if (serialComm.commandReceived()) {
 		serialComm.getCommand(commandString);
 
@@ -236,12 +251,13 @@ void loop() {
 
 		serialComm.reset();
 	}
+	
+	deviceState.mCurrentTemperatureC = tempSensor.getCurrentTemp();
+	deviceState.mCurrentSpeed = motorControl.getCurrentSpeed();
+	deviceState.mMicroStep = motorControl.getMicroStep();
 
 	do {
 		// Update the state of the device from various sensors.
-		deviceState.mCurrentTemperatureC = tempSensor.getCurrentTemp();
-		deviceState.mCurrentSpeed = motorControl.getCurrentSpeed();
-		deviceState.mMicroStep = motorControl.getMicroStep();
 		deviceState.mCurrentStep = motorControl.getCurrentStep();
 		deviceState.mPushButtonState = pbState.determinePushButtonState();
 		deviceState.mIsJogging = pbState.isJogging();
@@ -263,7 +279,6 @@ void loop() {
 		// Update the LCD display based on the device state.
 		displayManager.updateDisplay(&deviceState);
 	} while (pbState.isJogging()); // Update display even when jogging.
-	delay(100);
 }
 
 void serialEvent() {

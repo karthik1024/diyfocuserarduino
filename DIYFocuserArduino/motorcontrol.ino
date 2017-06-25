@@ -1,4 +1,6 @@
-MotorControl::MotorControl() {}
+MotorControl::MotorControl(Bounce &homeButton) {
+	mHomePositionButton = &homeButton;
+}
 
 void MotorControl::initalize() {
 	pinMode(STEPPER_DIRECTION_PIN, OUTPUT);
@@ -12,6 +14,32 @@ void MotorControl::initalize() {
 	digitalWrite(STEPPER_STEP_PIN, 0); 
 	setEnable(true);
 	setMicroStep(STEPPER_DEFAULT_MICROSTEP);
+}
+
+void MotorControl::homeStepper() {
+	/*The step() method ensures that if the home button is pressed, the stepper
+	is disabled. In this method, we re-enable the stepper and continue stepping
+	until the stepper is disabled by the step() method due to hitting the home
+	position button. We then force movement in the opposite direction to ensure
+	that the button reads low before we return.
+	*/
+	setEnable(true);
+	StepperSpeed savedSpeed = mCurrentSpeed;
+	setSpeed(HIGHSPEED);
+
+	while (mIsEnabled) {
+		step(STEPPER_DIRECTION_IN, 1);
+	}
+
+	StepperDirection stepperDirectionOut = STEPPER_DIRECTION_IN == CLOCKWISE ? ANTICLOCKWISE : CLOCKWISE;
+	mCurrentStep = 0;
+
+	while (mHomePositionButton->read() == LOW) {
+		setEnable(true); // Force enable in case the button is still depressed.
+		step(stepperDirectionOut, 1);
+	}
+
+	setSpeed(savedSpeed); // Reset to older speed.
 }
 
 void MotorControl::setMicroStep(short microStep) {
@@ -83,6 +111,11 @@ bool MotorControl::isEnabled() {
 }
 
 void MotorControl::step(StepperDirection direction, int nSteps) {
+	if (!mIsEnabled) {
+		// If the stepper is not enabled, there is nothing to do.
+		return;
+	}
+
 	StepperDirection actualDirection = direction;
 
 	if (isReversed()) {
@@ -93,6 +126,13 @@ void MotorControl::step(StepperDirection direction, int nSteps) {
 
 	for (int steps = 0; steps < nSteps; steps++) {
 		// TODO: Implement safety here (maxsteps and minsteps)
+		// Update and check the home position button. If it has been pressed, 
+		// disable the stepper motor for safety.
+		mHomePositionButton->update();
+		if (mHomePositionButton->read() == LOW) {
+			setEnable(false);
+		}
+
 		analogWrite(STEPPER_STEPINDICATOR_LED_PIN, 1023);  //Indicate a step via the LED
 		digitalWrite(STEPPER_STEP_PIN, HIGH);
 		delayMicroseconds((int)STEPPER_ON_TIME);
