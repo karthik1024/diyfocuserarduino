@@ -16,7 +16,7 @@ char * CommandProcessor::processCommand(const char *pCommandString) {
 	else if (strcmp("IDN", pCmd) == 0) cmdIdn();
 	else if (strcmp("MAXSTEPS", pCmd) == 0) cmdMaxSteps();
 	else if (strcmp("MOVE", pCmd) == 0) cmdMove(pArg);
-	else if (strcmp("HALT", pCmd) == 0) cmdHalt(pArg);
+	else if (strcmp("HALT", pCmd) == 0) cmdHalt();
 	else if (strcmp("POSITION", pCmd) == 0) cmdPosition();
 	return pCmd;
 }
