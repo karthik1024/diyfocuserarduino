@@ -199,3 +199,31 @@ void MotorControl::toggleSpeed() {
 		break;
 	}
 }
+
+void MotorControl::moveToTarget(int target) {
+	mTarget = target;
+	isExecutingMoveCommand = true;
+}
+
+void MotorControl::executeMove() {
+	// TODO: Change step() signature to be DIR_POSITIVE, nsteps and allow for negative steps. If positive nStep move in
+	// direction specified by DIR_POSITIVE. If negative, move in opposite direction.
+	if (isExecutingMoveCommand) {
+		if (mTarget > mCurrentStep) {
+			step(STEPPER_DIRECTION_IN, 1);
+		}
+		else if (mTarget < mCurrentSpeed) {
+			StepperDirection out = STEPPER_DIRECTION_IN == CLOCKWISE ? ANTICLOCKWISE : CLOCKWISE;
+			step(out, 1);
+		}
+		else {
+			isExecutingMoveCommand = false;
+			mTarget = NULL;
+		}
+	}
+}
+
+void MotorControl::halt() {
+	isExecutingMoveCommand = false;
+	mTarget = NULL;
+}

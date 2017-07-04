@@ -51,7 +51,8 @@
 #define STEPPER_ON_TIME 5 // Time in microseconds that coil power is ON for one step, board requires 2us pulse
 #define STEPPER_DEFAULT_MICROSTEP 1 // Valid values are 1, 2, 4, 8, 16, 32.
 #define STEPPER_DEFAULT_SPEED HIGHSPEED // Valid values are part of enum StepperSpeed
-#define STEPPER_DIRECTION_IN ANTICLOCKWISE // The direction that causes the focuser to move inside the telescope.
+#define STEPPER_DIRECTION_IN CLOCKWISE // The direction that causes the focuser to move inside the telescope.
+#define STEPPER_MAXSTEPS 10000// Maximum number of steps the focuser is allowed to take. Needs to be manually determined.
 
 typedef enum SwitchState {
 	/*Define push button states.*/
@@ -182,6 +183,7 @@ private:
 	bool mIsReversed = false;
 	long mCurrentStep;  // Current number of steps taken from home position.
 	Bounce *mHomePositionButton;
+	int mTarget;  // Target position to move to.
 public:
 	MotorControl(Bounce &homeButton);
 	void initalize();
@@ -198,6 +200,10 @@ public:
 	StepperSpeed getCurrentSpeed();
 	void toggleSpeed();
 	void homeStepper();
+	bool isExecutingMoveCommand = false;
+	void moveToTarget(int target);
+	void executeMove();
+	void halt();
 };
 
 /*Create instates of all control classes that will be used throughout the life of the program
@@ -240,12 +246,12 @@ void setup() {
 
 // the loop function runs over and over again until power down or reset
 void loop() {
-	/*In each iteration of the loop, check if a command has been received. If 
+	/*In each iteration of the loop, check if a command has been received. If
 	so, handle it before doing anything else. If not, update display and
 	perform actions if any of the push buttons are pressed.
 	*/
 
- 	// If a command has been received, nothing will get done until it has been processed.
+	// If a command has been received, nothing will get done until it has been processed.
 	char commandString[SERIALCOMM_MAXINPUTSIZE + 1];
 	if (serialComm.commandReceived()) {
 		serialComm.getCommand(commandString);
@@ -255,34 +261,42 @@ void loop() {
 
 		serialComm.reset();
 	}
-	
-	deviceState.mCurrentTemperatureC = tempSensor.getCurrentTemp();
-	deviceState.mCurrentSpeed = motorControl.getCurrentSpeed();
-	deviceState.mMicroStep = motorControl.getMicroStep();
 
-	do {
-		// Update the state of the device from various sensors.
-		deviceState.mCurrentStep = motorControl.getCurrentStep();
-		deviceState.mPushButtonState = pbState.determinePushButtonState();
-		deviceState.mIsJogging = pbState.isJogging();
-		
-		// If the pushbuttons are pressed, perform the appropriate action.
-		switch (deviceState.mPushButtonState) 
-		{
-		case PBCLOCKWISE:
-			motorControl.step(CLOCKWISE);
-			break;
-		case PBANTICLOCKWISE:
-			motorControl.step(ANTICLOCKWISE);
-			break;
-		case BOTH:
-			// Cycle through stepper job speed when both push buttons have been pressed.
-			motorControl.toggleSpeed();
-		}
-		
-		// Update the LCD display based on the device state.
-		displayManager.updateDisplay(&deviceState);
-	} while (pbState.isJogging()); // Update display even when jogging.
+	if (motorControl.isExecutingMoveCommand) {
+		// We are executing a move command from the Serial port, likely from the
+		// ASCOM driver. We must give this priority over updating LCD display.
+		motorControl.executeMove();
+	}
+	else
+	{
+		deviceState.mCurrentTemperatureC = tempSensor.getCurrentTemp();
+		deviceState.mCurrentSpeed = motorControl.getCurrentSpeed();
+		deviceState.mMicroStep = motorControl.getMicroStep();
+
+		do {
+			// Update the state of the device from various sensors.
+			deviceState.mCurrentStep = motorControl.getCurrentStep();
+			deviceState.mPushButtonState = pbState.determinePushButtonState();
+			deviceState.mIsJogging = pbState.isJogging();
+
+			// If the pushbuttons are pressed, perform the appropriate action.
+			switch (deviceState.mPushButtonState)
+			{
+			case PBCLOCKWISE:
+				motorControl.step(CLOCKWISE);
+				break;
+			case PBANTICLOCKWISE:
+				motorControl.step(ANTICLOCKWISE);
+				break;
+			case BOTH:
+				// Cycle through stepper job speed when both push buttons have been pressed.
+				motorControl.toggleSpeed();
+			}
+
+			// Update the LCD display based on the device state.
+			displayManager.updateDisplay(&deviceState);
+		} while (pbState.isJogging()); // Update display even when jogging.
+	}
 }
 
 void serialEvent() {
