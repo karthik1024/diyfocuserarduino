@@ -110,6 +110,11 @@ public:
 	void cmdHome();
 	void cmdEnable();
 	void cmdDisable();
+	void cmdIdn();
+	void cmdMaxSteps();
+	void cmdMove(char * position);
+	void cmdHalt();
+	void cmdPosition();
 };
 
 class SerialComm {
