@@ -40,7 +40,8 @@
 #define LIQUIDCRYSTAL_PARAMS
 
 // Stepper Motor stuff, control pins for DRV8825 board
-#define STEPPER_STEPINDICATOR_LED_PIN A1
+#define STEPPER_POSITIVE_STEPINDICATOR_LED_PIN A1
+#define STEPPER_NEGATIVE_STEPINDICATOR_LED_PIN A2
 #define STEPPER_DIRECTION_PIN 3
 #define STEPPER_STEP_PIN 4
 #define STEPPER_MICROSTEP_PIN2 5  // microstepping lines
@@ -203,6 +204,7 @@ public:
 	void moveToTarget(int target);
 	void executeMove();
 	void halt();
+	int directionToSign(StepperDirection direction);
 };
 
 /*Create instates of all control classes that will be used throughout the life of the program
@@ -282,10 +284,10 @@ void loop() {
 			switch (deviceState.mPushButtonState)
 			{
 			case PBCLOCKWISE:
-				motorControl.step(CLOCKWISE);
+				motorControl.step(motorControl.directionToSign(CLOCKWISE));
 				break;
 			case PBANTICLOCKWISE:
-				motorControl.step(ANTICLOCKWISE);
+				motorControl.step(motorControl.directionToSign(ANTICLOCKWISE));
 				break;
 			case BOTH:
 				// Cycle through stepper job speed when both push buttons have been pressed.

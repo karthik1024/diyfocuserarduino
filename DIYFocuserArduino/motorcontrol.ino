@@ -28,7 +28,7 @@ void MotorControl::homeStepper() {
 	setSpeed(HIGHSPEED);
 
 	// Keep stepping till the home button gets pressed.
-	int signIn = STEPPER_DIRECTION_IN == STEPPER_DIRECTION_POSITIVE ? 1 : -1;
+	int signIn = directionToSign(STEPPER_DIRECTION_IN);
 	mIsHomed = false;
 	while (mHomePositionButton->read() == HIGH) {
 		step(signIn);
@@ -152,7 +152,9 @@ void MotorControl::step(int nSteps, bool force = false) {
 		}
 
 		// Execute a single step. The direction has already been determined via setDirection()
-		analogWrite(STEPPER_STEPINDICATOR_LED_PIN, 1023);  //Indicate a step via the LED
+		int led = nSteps > 0 ? STEPPER_POSITIVE_STEPINDICATOR_LED_PIN : STEPPER_NEGATIVE_STEPINDICATOR_LED_PIN;
+		analogWrite(led, 1023);
+
 		digitalWrite(STEPPER_STEP_PIN, HIGH);
 		delayMicroseconds((int)STEPPER_ON_TIME);
 		digitalWrite(STEPPER_STEP_PIN, LOW);
@@ -174,7 +176,7 @@ void MotorControl::step(int nSteps, bool force = false) {
 			break;
 		}
 
-		analogWrite(STEPPER_STEPINDICATOR_LED_PIN, 0); 
+		analogWrite(led, 0); 
 	}
 } 
 
@@ -239,4 +241,10 @@ void MotorControl::executeMove() {
 void MotorControl::halt() {
 	isExecutingMoveCommand = false;
 	mTarget = NULL;
+}
+
+
+int MotorControl::directionToSign(StepperDirection direction) {
+	int sign = direction == STEPPER_DIRECTION_POSITIVE ? 1 : -1;
+	return sign;
 }
