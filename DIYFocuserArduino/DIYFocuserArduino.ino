@@ -1,7 +1,7 @@
 /*
  Name:		DIYFocuserArduino.ino
  Created:	11/6/2016 2:39:04 PM
- Author:	Karthik
+ Author:	Karthik Vijayraghavan
 */
 
 #include <Bounce2.h>
@@ -39,7 +39,7 @@
 #define LIQUIDCRYSTAL_REFRESH_INTERVAL_MILLISECOND 500  // Display update interval.
 #define LIQUIDCRYSTAL_PARAMS
 
-// Stepper Motor stuff, control pins for DRV8825 board, REV 203 ONLY
+// Stepper Motor stuff, control pins for DRV8825 board
 #define STEPPER_STEPINDICATOR_LED_PIN A1
 #define STEPPER_DIRECTION_PIN 3
 #define STEPPER_STEP_PIN 4
@@ -51,7 +51,8 @@
 #define STEPPER_ON_TIME 5 // Time in microseconds that coil power is ON for one step, board requires 2us pulse
 #define STEPPER_DEFAULT_MICROSTEP 1 // Valid values are 1, 2, 4, 8, 16, 32.
 #define STEPPER_DEFAULT_SPEED HIGHSPEED // Valid values are part of enum StepperSpeed
-#define STEPPER_DIRECTION_IN CLOCKWISE // The direction that causes the focuser to move inside the telescope.
+#define STEPPER_DIRECTION_POSITIVE CLOCKWISE // The positive direction according to ASCOM.
+#define STEPPER_DIRECTION_IN CLOCKWISE // The direction that moves the focuser inside the telescope.
 #define STEPPER_MAXSTEPS 10000// Maximum number of steps the focuser is allowed to take. Needs to be manually determined.
 
 typedef enum SwitchState {
@@ -180,10 +181,10 @@ private:
 	short mMicroStep = STEPPER_DEFAULT_MICROSTEP;
 	bool mIsEnabled = false;
 	StepperSpeed mCurrentSpeed = STEPPER_DEFAULT_SPEED;
-	bool mIsReversed = false;
 	long mCurrentStep;  // Current number of steps taken from home position.
 	Bounce *mHomePositionButton;
 	int mTarget;  // Target position to move to.
+	bool mIsHomed = false; // True if the focuser has been homed.
 public:
 	MotorControl(Bounce &homeButton);
 	void initalize();
@@ -191,10 +192,8 @@ public:
 	short getMicroStep();
 	void setEnable(bool enable);
 	bool isEnabled();
-	void step(StepperDirection direction, int nSteps=1);
+	void step(int nSteps, bool force = false);
 	long getCurrentStep();
-	void setReversed(bool truefalse);
-	bool isReversed();
 	void setDirection(StepperDirection direction);
 	void setSpeed(StepperSpeed speed);
 	StepperSpeed getCurrentSpeed();

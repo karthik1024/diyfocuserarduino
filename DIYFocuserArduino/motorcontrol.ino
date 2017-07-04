@@ -27,18 +27,25 @@ void MotorControl::homeStepper() {
 	StepperSpeed savedSpeed = mCurrentSpeed;
 	setSpeed(HIGHSPEED);
 
-	while (mIsEnabled) {
-		step(STEPPER_DIRECTION_IN, 1);
+	// Keep stepping till the home button gets pressed.
+	int signIn = STEPPER_DIRECTION_IN == STEPPER_DIRECTION_POSITIVE ? 1 : -1;
+	mIsHomed = false;
+	while (mHomePositionButton->read() == HIGH) {
+		step(signIn);
 	}
 
-	StepperDirection stepperDirectionOut = STEPPER_DIRECTION_IN == CLOCKWISE ? ANTICLOCKWISE : CLOCKWISE;
+	// Define the position where home button gets pressed as Zero.
 	mCurrentStep = 0;
 
+	// We now need to move the focuser back, away from the home button in order
+	// to allow stepping to occur. However, we will need to force this to happen
+	// since due to hysteresis, the home buttom will likely remain depressed
+	// even as we are trying to move away from it.
 	while (mHomePositionButton->read() == LOW) {
-		setEnable(true); // Force enable in case the button is still depressed.
-		step(stepperDirectionOut, 1);
+		step(-1 * signIn, true);
 	}
 
+	mIsHomed = true;
 	setSpeed(savedSpeed); // Reset to older speed.
 }
 
@@ -110,36 +117,51 @@ bool MotorControl::isEnabled() {
 	return mIsEnabled;
 }
 
-void MotorControl::step(StepperDirection direction, int nSteps) {
+void MotorControl::step(int nSteps, bool force = false) {
 	if (!mIsEnabled) {
 		// If the stepper is not enabled, there is nothing to do.
 		return;
 	}
 
-	StepperDirection actualDirection = direction;
+	int actualSteps = (int)abs(nSteps);
 
-	if (isReversed()) {
-		actualDirection = direction == CLOCKWISE ? ANTICLOCKWISE : CLOCKWISE;
+	// Set the direction of the stepper based on the sign of nSteps.
+	StepperDirection actualDirection;
+	if (nSteps > 0) {
+		actualDirection = STEPPER_DIRECTION_POSITIVE;
 	}
-
+	else {
+		actualDirection = STEPPER_DIRECTION_POSITIVE == CLOCKWISE ? ANTICLOCKWISE : CLOCKWISE;
+	}
 	setDirection(actualDirection);
 
-	for (int steps = 0; steps < nSteps; steps++) {
-		// TODO: Implement safety here (maxsteps and minsteps)
-		// Update and check the home position button. If it has been pressed, 
-		// disable the stepper motor for safety.
+	bool isHomeButtonPressed;
+	bool ifMaxStepsReached;
+
+	for (int steps = 0; steps < actualSteps; steps++) {
+		// Update and check if we have reached the MaxSteps or the home position.
+		// Unless forced to move, simply break out of the loop for safety. The
+		// only exception is when we are trying to home the focuser, we might
+		// need to reverse the focuser while the home button is still pressed.
 		mHomePositionButton->update();
-		if (mHomePositionButton->read() == LOW) {
-			setEnable(false);
+		isHomeButtonPressed = mHomePositionButton->read() == LOW;
+		ifMaxStepsReached = mCurrentStep >= STEPPER_MAXSTEPS;
+
+		if ((ifMaxStepsReached | isHomeButtonPressed) & !force) {
+			break;
 		}
 
+		// Execute a single step. The direction has already been determined via setDirection()
 		analogWrite(STEPPER_STEPINDICATOR_LED_PIN, 1023);  //Indicate a step via the LED
 		digitalWrite(STEPPER_STEP_PIN, HIGH);
 		delayMicroseconds((int)STEPPER_ON_TIME);
 		digitalWrite(STEPPER_STEP_PIN, LOW);
 
-		mCurrentStep = actualDirection == CLOCKWISE ? mCurrentStep + 1 : mCurrentStep - 1;
+		// Update internal step count based on the sign of nSteps.
+		mCurrentStep =  nSteps > 0 ? mCurrentStep + 1 : mCurrentStep - 1;
 
+		// Wait before executing the next step. This wait time depends on whether we are 
+		// micro-stepping or not.
 		switch (mMicroStep) {
 		case 1:
 			delayMicroseconds(mCurrentSpeed);
@@ -158,14 +180,6 @@ void MotorControl::step(StepperDirection direction, int nSteps) {
 
 long MotorControl::getCurrentStep() {
 	return mCurrentStep;
-}
-
-void MotorControl::setReversed(bool truefalse) {
-	mIsReversed = truefalse;
-}
-
-bool MotorControl::isReversed() {
-	return mIsReversed;
 }
 
 void MotorControl::setDirection(StepperDirection direction) {
@@ -206,21 +220,20 @@ void MotorControl::moveToTarget(int target) {
 }
 
 void MotorControl::executeMove() {
-	// TODO: Change step() signature to be DIR_POSITIVE, nsteps and allow for negative steps. If positive nStep move in
-	// direction specified by DIR_POSITIVE. If negative, move in opposite direction.
-	if (isExecutingMoveCommand) {
-		if (mTarget > mCurrentStep) {
-			step(STEPPER_DIRECTION_IN, 1);
-		}
-		else if (mTarget < mCurrentSpeed) {
-			StepperDirection out = STEPPER_DIRECTION_IN == CLOCKWISE ? ANTICLOCKWISE : CLOCKWISE;
-			step(out, 1);
-		}
-		else {
-			isExecutingMoveCommand = false;
-			mTarget = NULL;
-		}
+	if (!isExecutingMoveCommand) {
+		return;
 	}
+
+	int sign = (mTarget - mCurrentStep) >= 0 ? 1 : -1;
+	bool targetReached = mTarget == mCurrentStep;
+	if (!targetReached) {
+		step(sign);
+	}
+	else {
+		isExecutingMoveCommand = false;
+		mTarget = NULL;
+	}
+	
 }
 
 void MotorControl::halt() {
