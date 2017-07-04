@@ -106,7 +106,6 @@ public:
 
 	char * processCommand(const char *pCommandString);
 	void cmdTemperature();
-	void cmdHasTempProbe();
 	void cmdReset();
 	void cmdHome();
 	void cmdEnable();

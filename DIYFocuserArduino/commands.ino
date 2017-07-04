@@ -9,7 +9,6 @@ char * CommandProcessor::processCommand(const char *pCommandString) {
 	pCmd = strsep(&pArg, " ");
 
 	if (strcmp("TEMPERATURE", pCmd) == 0) cmdTemperature();
-	else if (strcmp("HASTEMPPROBE", pCmd) == 0) cmdHasTempProbe();
 	else if (strcmp("RESET", pCmd) == 0) cmdReset();
 	else if (strcmp("HOME", pCmd) == 0) cmdHome();
 	else if (strcmp("ENABLE", pCmd) == 0) cmdEnable();
@@ -19,11 +18,6 @@ char * CommandProcessor::processCommand(const char *pCommandString) {
 
 void CommandProcessor::cmdTemperature() {
 	Serial.print(tempSensor.getCurrentTemp());
-	Serial.println('#');
-}
-
-void CommandProcessor::cmdHasTempProbe() {
-	Serial.print(tempSensor.isConnected());
 	Serial.println('#');
 }
 
