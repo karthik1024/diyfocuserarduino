@@ -27,7 +27,8 @@ void MotorControl::homeStepper() {
 	StepperSpeed savedSpeed = mCurrentSpeed;
 	setSpeed(HIGHSPEED);
 
-	// Keep stepping till the home button gets pressed.
+	// Keep stepping till the home button gets pressed. When the button is 
+	// pressed, the home position button will be grounded.
 	int signIn = directionToSign(STEPPER_DIRECTION_IN);
 	mIsHomed = false;
 	while (mHomePositionButton->read() == HIGH) {
@@ -128,10 +129,10 @@ void MotorControl::step(int nSteps, bool force = false) {
 	// Set the direction of the stepper based on the sign of nSteps.
 	StepperDirection actualDirection;
 	if (nSteps > 0) {
-		actualDirection = STEPPER_DIRECTION_POSITIVE;
+		actualDirection = STEPPER_DIRECTION_OUT;
 	}
 	else {
-		actualDirection = STEPPER_DIRECTION_POSITIVE == CLOCKWISE ? ANTICLOCKWISE : CLOCKWISE;
+		actualDirection = STEPPER_DIRECTION_IN;
 	}
 	setDirection(actualDirection);
 
@@ -147,7 +148,16 @@ void MotorControl::step(int nSteps, bool force = false) {
 		isHomeButtonPressed = mHomePositionButton->read() == LOW;
 		ifMaxStepsReached = mCurrentStep >= STEPPER_MAXSTEPS;
 
-		if ((ifMaxStepsReached | isHomeButtonPressed) & !force) {
+		// If the home button has been pressed, the fucuser shouldn't be allowed
+		// to move in anymore, but allowed to move out. Similarly, if maxsteps
+		// has been reached, the focuser should be allowed to move in but not
+		// out. If this asymmetric check is not performed, once either of the
+		// limits are reached, it will be impossible to move the focuser.
+		if (ifMaxStepsReached && actualDirection == STEPPER_DIRECTION_OUT) {
+			break;
+		}
+
+		if (isHomeButtonPressed && actualDirection == STEPPER_DIRECTION_IN) {
 			break;
 		}
 
@@ -245,6 +255,6 @@ void MotorControl::halt() {
 
 
 int MotorControl::directionToSign(StepperDirection direction) {
-	int sign = direction == STEPPER_DIRECTION_POSITIVE ? 1 : -1;
+	int sign = direction == STEPPER_DIRECTION_OUT ? 1 : -1;
 	return sign;
 }

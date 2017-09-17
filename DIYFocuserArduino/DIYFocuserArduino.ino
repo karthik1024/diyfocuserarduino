@@ -18,7 +18,7 @@
 #define TEMPSENSOR_PIN 2 // temperature probe on Arduini pin D2, use 4.7k pullup.        
 
 #define PUSHBUTTON_MIN_TIME_MS_BEFORE_STATE_CHANGE 300 // The minimum time a button has to be pressed to cause a state change.
-#define PUSHBUTTON_MIN_TIME_MS_BEFORE_JOGGING 1000 // The minimum time a button has to be pressed to consider the state to be "jogging".
+#define PUSHBUTTON_MIN_TIME_MS_BEFORE_JOGGING 2000 // The minimum time a button has to be pressed to consider the state to be "jogging".
 #define PUSHBUTTON_SWITCH_PIN  A0 // push button switches wired to Arduino A0 pin via resistor divider network.
 
 #define HOMEBUTTON 12 // Home button is connect to Arduino pin D12.
@@ -36,7 +36,7 @@
 #define LIQUIDCRYSTAL_D7_PIN 7
 #define LIQUIDCRYSTAL_BACKLIGHT_PIN 3
 #define LIQUIDCRYSTAL_BACKLIGHT_POLARITY POSITIVE
-#define LIQUIDCRYSTAL_REFRESH_INTERVAL_MILLISECOND 500  // Display update interval.
+#define LIQUIDCRYSTAL_REFRESH_INTERVAL_MILLISECOND 2000  // Display update interval.
 #define LIQUIDCRYSTAL_PARAMS
 
 // Stepper Motor stuff, control pins for DRV8825 board
@@ -52,9 +52,9 @@
 #define STEPPER_ON_TIME 5 // Time in microseconds that coil power is ON for one step, board requires 2us pulse
 #define STEPPER_DEFAULT_MICROSTEP 1 // Valid values are 1, 2, 4, 8, 16, 32.
 #define STEPPER_DEFAULT_SPEED HIGHSPEED // Valid values are part of enum StepperSpeed
-#define STEPPER_DIRECTION_POSITIVE CLOCKWISE // The positive direction according to ASCOM.
-#define STEPPER_DIRECTION_IN CLOCKWISE // The direction that moves the focuser inside the telescope.
-#define STEPPER_MAXSTEPS 10000// Maximum number of steps the focuser is allowed to take. Needs to be manually determined.
+#define STEPPER_DIRECTION_OUT CLOCKWISE // The positive direction according to ASCOM. Must move focuser out.
+#define STEPPER_DIRECTION_IN ANTICLOCKWISE // The direction that moves the focuser inside the telescope.
+#define STEPPER_MAXSTEPS 30000// Maximum number of steps the focuser is allowed to take. Needs to be manually determined.
 
 typedef enum SwitchState {
 	/*Define push button states.*/
