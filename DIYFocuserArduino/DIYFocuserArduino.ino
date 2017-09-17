@@ -281,13 +281,29 @@ void loop() {
 			deviceState.mIsJogging = pbState.isJogging();
 
 			// If the pushbuttons are pressed, perform the appropriate action.
+			int nSteps;
+			switch (motorControl.getCurrentSpeed())
+			{
+			case LOWSPEED:
+				nSteps = 1;
+				break;
+			case MEDSPEED:
+				nSteps = 10;
+				break;
+			case HIGHSPEED:
+				nSteps = 100;
+				break;
+			}
+
 			switch (deviceState.mPushButtonState)
 			{
 			case PBCLOCKWISE:
-				motorControl.step(motorControl.directionToSign(CLOCKWISE));
+				motorControl.step(nSteps * motorControl.directionToSign(CLOCKWISE));
+				delay(1000);
 				break;
 			case PBANTICLOCKWISE:
-				motorControl.step(motorControl.directionToSign(ANTICLOCKWISE));
+				motorControl.step(nSteps * motorControl.directionToSign(ANTICLOCKWISE));
+				delay(1000);
 				break;
 			case BOTH:
 				// Cycle through stepper job speed when both push buttons have been pressed.
