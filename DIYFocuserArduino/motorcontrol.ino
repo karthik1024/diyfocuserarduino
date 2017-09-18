@@ -31,8 +31,10 @@ void MotorControl::homeStepper() {
 	// pressed, the home position button will be grounded.
 	int signIn = directionToSign(STEPPER_DIRECTION_IN);
 	mIsHomed = false;
-	while (mHomePositionButton->read() == HIGH) {
+	int stepsTaken = 0;
+	while ((mHomePositionButton->read() == HIGH) && stepsTaken < STEPPER_MAXSTEPS) {
 		step(signIn);
+		stepsTaken++;
 	}
 
 	// Define the position where home button gets pressed as Zero.
@@ -41,10 +43,13 @@ void MotorControl::homeStepper() {
 	// We now need to move the focuser back, away from the home button in order
 	// to allow stepping to occur. However, we will need to force this to happen
 	// since due to hysteresis, the home buttom will likely remain depressed
-	// even as we are trying to move away from it.
+	// even as we are trying to move away from it. After button is released, we
+	// need to move a bit more away from it so that it is easier to manipulate
+	// the stepper without accidently bumping into the home button.
 	while (mHomePositionButton->read() == LOW) {
 		step(-1 * signIn, true);
 	}
+	step(HOMEBUTTON_EXTRA_STEPS_POST_HOMING);
 
 	mIsHomed = true;
 	setSpeed(savedSpeed); // Reset to older speed.

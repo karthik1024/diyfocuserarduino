@@ -23,6 +23,7 @@
 
 #define HOMEBUTTON 12 // Home button is connect to Arduino pin D12.
 #define HOMEBUTTON_DEBOUNCE_INTERVAL_MILLISECOND 100 // Home button debounce interval.
+#define HOMEBUTTON_EXTRA_STEPS_POST_HOMING 500 // The number of addition steps to move out AFTER the home button gets released after a successful homing. 
 
 #define Buzzer A3 // The buzzer is connected to Arduino pin A3.
 
