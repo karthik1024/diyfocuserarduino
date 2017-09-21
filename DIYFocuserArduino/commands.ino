@@ -18,6 +18,7 @@ char * CommandProcessor::processCommand(const char *pCommandString) {
 	else if (strcmp("MOVE", pCmd) == 0) cmdMove(pArg);
 	else if (strcmp("HALT", pCmd) == 0) cmdHalt();
 	else if (strcmp("POSITION", pCmd) == 0) cmdPosition();
+	else if (strcmp("ISMOVING", pCmd) == 0) cmdIsMoving();
 	return pCmd;
 }
 
@@ -34,7 +35,8 @@ void CommandProcessor::cmdReset() {
 
 void CommandProcessor::cmdHome() {
 	Serial.println("Homing stepper ...#");
-	motorControl.homeStepper();
+	motorControl.isHoming = true;
+	motorControl.moveToTarget(0);
 }
 
 void CommandProcessor::cmdEnable() {
@@ -51,7 +53,6 @@ void CommandProcessor::cmdIdn() {
 	// Identify this device. 
 	// Useful when searching for the focuser hardware among available
 	// serial ports.
-
 	Serial.println("ArduinoFocuser#");
 }
 
@@ -72,5 +73,10 @@ void CommandProcessor::cmdHalt() {
 
 void CommandProcessor::cmdPosition() {
 	Serial.print(motorControl.getCurrentStep());
+	Serial.println('#');
+}
+
+void CommandProcessor::cmdIsMoving() {
+	Serial.print(motorControl.isExecutingMoveCommand);
 	Serial.println('#');
 }

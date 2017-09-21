@@ -17,20 +17,11 @@ void MotorControl::initalize() {
 }
 
 void MotorControl::homeStepper() {
-	/*The step() method ensures that if the home button is pressed, the stepper
-	is disabled. In this method, we re-enable the stepper and continue stepping
-	until the stepper is disabled by the step() method due to hitting the home
-	position button. We then force movement in the opposite direction to ensure
-	that the button reads low before we return.
+	/*Continue stepping until the stepper is disabled by the step() method due 
+	to hitting the home position button. Then force movement in the opposite 
+	direction to ensure that the button is not pressed before we return.
 	*/
-	setEnable(true);
-	StepperSpeed savedSpeed = mCurrentSpeed;
-	setSpeed(HIGHSPEED);
-
-	// Keep stepping till the home button gets pressed. When the button is 
-	// pressed, the home position button will be grounded.
 	int signIn = directionToSign(STEPPER_DIRECTION_IN);
-	mIsHomed = false;
 	int stepsTaken = 0;
 	while ((mHomePositionButton->read() == HIGH) && stepsTaken < STEPPER_MAXSTEPS) {
 		step(signIn);
@@ -50,9 +41,7 @@ void MotorControl::homeStepper() {
 		step(-1 * signIn, true);
 	}
 	step(HOMEBUTTON_EXTRA_STEPS_POST_HOMING);
-
-	mIsHomed = true;
-	setSpeed(savedSpeed); // Reset to older speed.
+	isHoming = false;
 }
 
 void MotorControl::setMicroStep(short microStep) {
@@ -243,12 +232,22 @@ void MotorControl::executeMove() {
 
 	int sign = (mTarget - mCurrentStep) >= 0 ? 1 : -1;
 	bool targetReached = mTarget == mCurrentStep;
+	bool isHomeButtonPressed = mHomePositionButton->read() == LOW;
+
+	if (isHoming && isHomeButtonPressed) {
+		halt();
+		homeStepper();
+		return;
+	}
+
 	if (!targetReached) {
 		step(sign);
 	}
 	else {
-		isExecutingMoveCommand = false;
-		mTarget = NULL;
+		halt();
+		if (isHoming) {
+			homeStepper();
+		}
 	}
 	
 }

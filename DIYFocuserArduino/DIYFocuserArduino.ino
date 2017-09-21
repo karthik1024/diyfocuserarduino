@@ -119,6 +119,7 @@ public:
 	void cmdMove(char * position);
 	void cmdHalt();
 	void cmdPosition();
+	void cmdIsMoving();
 };
 
 class SerialComm {
@@ -186,7 +187,6 @@ private:
 	long mCurrentStep;  // Current number of steps taken from home position.
 	Bounce *mHomePositionButton;
 	int mTarget;  // Target position to move to.
-	bool mIsHomed = false; // True if the focuser has been homed.
 public:
 	MotorControl(Bounce &homeButton);
 	void initalize();
@@ -202,6 +202,7 @@ public:
 	void toggleSpeed();
 	void homeStepper();
 	bool isExecutingMoveCommand = false;
+	bool isHoming = false;
 	void moveToTarget(int target);
 	void executeMove();
 	void halt();
