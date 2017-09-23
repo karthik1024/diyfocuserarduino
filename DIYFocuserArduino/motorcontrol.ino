@@ -12,7 +12,7 @@ void MotorControl::initalize() {
 
 	setDirection(CLOCKWISE);
 	digitalWrite(STEPPER_STEP_PIN, 0); 
-	setEnable(true);
+	setEnable(false);
 	setMicroStep(STEPPER_DEFAULT_MICROSTEP);
 }
 
@@ -113,11 +113,6 @@ bool MotorControl::isEnabled() {
 }
 
 void MotorControl::step(int nSteps, bool force = false) {
-	if (!mIsEnabled) {
-		// If the stepper is not enabled, there is nothing to do.
-		return;
-	}
-
 	int actualSteps = (int)abs(nSteps);
 
 	// Set the direction of the stepper based on the sign of nSteps.
@@ -159,9 +154,12 @@ void MotorControl::step(int nSteps, bool force = false) {
 		int led = nSteps > 0 ? STEPPER_POSITIVE_STEPINDICATOR_LED_PIN : STEPPER_NEGATIVE_STEPINDICATOR_LED_PIN;
 		analogWrite(led, 1023);
 
+		setEnable(true);
+		delayMicroseconds(1000);
 		digitalWrite(STEPPER_STEP_PIN, HIGH);
 		delayMicroseconds((int)STEPPER_ON_TIME);
 		digitalWrite(STEPPER_STEP_PIN, LOW);
+		setEnable(false);
 
 		// Update internal step count based on the sign of nSteps.
 		mCurrentStep =  nSteps > 0 ? mCurrentStep + 1 : mCurrentStep - 1;
