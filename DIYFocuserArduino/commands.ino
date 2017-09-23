@@ -19,6 +19,7 @@ char * CommandProcessor::processCommand(const char *pCommandString) {
 	else if (strcmp("HALT", pCmd) == 0) cmdHalt();
 	else if (strcmp("POSITION", pCmd) == 0) cmdPosition();
 	else if (strcmp("ISMOVING", pCmd) == 0) cmdIsMoving();
+	else if (strcmp("ISHOMING", pCmd) == 0) cmdIsHoming();
 	return pCmd;
 }
 
@@ -78,5 +79,10 @@ void CommandProcessor::cmdPosition() {
 
 void CommandProcessor::cmdIsMoving() {
 	Serial.print(motorControl.isExecutingMoveCommand);
+	Serial.println('#');
+}
+
+void CommandProcessor::cmdIsHoming() {
+	Serial.print(motorControl.isHoming);
 	Serial.println('#');
 }

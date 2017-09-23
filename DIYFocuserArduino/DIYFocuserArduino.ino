@@ -120,6 +120,7 @@ public:
 	void cmdHalt();
 	void cmdPosition();
 	void cmdIsMoving();
+	void cmdIsHoming();
 };
 
 class SerialComm {
